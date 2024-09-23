@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import MyPosts from "./MyPost";
 import MyRecipes from "./MyRecipe";
@@ -17,9 +17,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import Image from 'next/image';
-import EditProfileForm from "./EditProfileForm";
 import EditProfileButton from "./EditProfileButton";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { Upload } from "lucide-react";
+import { revalidatePath } from "next/cache";
 
 type Section = 'posts' | 'my-recipes' | 'saved-recipes';
 
@@ -28,13 +29,15 @@ const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gi
 
 const formSchema = z.object({
     image: z
-        .custom<FileList>()
-        .refine((files) => files.length === 1, 'Please upload exactly one image.')
-        .refine((files) => files[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
+        .custom<File>((v) => v instanceof File, {
+            message: "Please upload a file",
+        })
+        .refine((file) => file.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
         .refine(
-            (files) => ACCEPTED_IMAGE_TYPES.includes(files[0]?.type),
+            (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
             'Only .jpg, .png, .webp and .gif formats are supported.'
-        ),
+        )
+        .optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -46,9 +49,9 @@ const UserProfile = () => {
     const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
     const [activeSection, setActiveSection] = useState<Section>('posts');
     const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const { data: session, update } = useSession();
-    
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
     });
@@ -68,12 +71,6 @@ const UserProfile = () => {
             console.error('Error fetching user data:', error);
         }
     }, []);
-
-    // useEffect(() => {
-    //     if (session?.user?.avatar) {
-    //       setAvatarUrl(session.user.avatar);
-    //     }
-    //   }, [session]);
 
     useEffect(() => {
         if (user?.id) {
@@ -102,11 +99,11 @@ const UserProfile = () => {
     };
 
     const onSubmit = async (data: FormValues) => {
-        if (!user || !selectedFile) return;
+        if (!user || !data.image) return;
 
         setIsUpdatingAvatar(true);
         const formData = new FormData();
-        formData.append('file', selectedFile);
+        formData.append('file', data.image);
 
         try {
             const response = await fetch('/api/cloudinary', {
@@ -119,18 +116,13 @@ const UserProfile = () => {
                 throw new Error(errorData.error || 'Failed to upload image');
             }
 
-            const result = await response.json();
-            const updatedUser = await UserService.updateProfile(user.id, { avatar: result.url });
-            console.log('Avatar updated:', result.url);
-
-            // Refresh user data or update local state
-            // if (updatedUser) {
-            //     user.avatar = result.url;
-            //     // update({avatar: result.url});
-            // }
-            // update({avatar: result.url});
-
-
+            const { url } = await response.json();
+            const res = await UserService.updateProfile(user.id, { avatar: url });
+            console.log(res);
+            update({ avatar: url });
+            
+            const event = new Event("visibilitychange");
+            document.dispatchEvent(event);
             form.reset();
         } catch (error) {
             console.error('Error uploading image:', error);
@@ -140,6 +132,20 @@ const UserProfile = () => {
             });
         } finally {
             setIsUpdatingAvatar(false);
+        }
+    };
+
+    const handleUploadButtonClick = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            form.setValue('image', file);
+            form.handleSubmit(onSubmit)();
         }
     };
 
@@ -158,14 +164,23 @@ const UserProfile = () => {
         <div className="w-full max-w-[1250px] mx-auto mt-8">
             <div className="bg-muted rounded-t-lg p-6 md:p-8">
                 <div className="flex items-center gap-4 mb-4">
-                    <Avatar className="w-24 h-24">
-                        <AvatarImage
-                            src={user?.avatar}
-                            alt={user?.email}
-                            className="h-full w-full object-cover"
+                    <div className="relative">
+                        <Image
+                            src={user?.avatar || 'https://www.gravatar.com/avatar/3b3be63a4c2a439b013787725dfce802?d=identicon'}
+                            alt="avatar"
+                            width={80}
+                            height={80}
+                            className="rounded-full object-cover"
                         />
-                    </Avatar>
-                    <div className=" space-y-1">
+                        <button
+                            type="button"
+                            className="absolute bottom-0 right-0 flex items-center justify-center rounded-full bg-yellow-400 p-2 text-white shadow-lg ring-1 ring-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                            onClick={handleUploadButtonClick}
+                        >
+                            <Upload size={16} />
+                        </button>
+                    </div>
+                    <div className="space-y-1">
                         <h2 className="text-xl font-bold">{user?.email}</h2>
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -178,20 +193,15 @@ const UserProfile = () => {
                                                 <Input
                                                     type="file"
                                                     accept={ACCEPTED_IMAGE_TYPES.join(',')}
-                                                    onChange={(e) => {
-                                                        field.onChange(e.target.files);
-                                                        setSelectedFile(e.target.files?.[0] || null);
-                                                    }}
-                                                    className="text-sm"
+                                                    onChange={handleFileChange}
+                                                    ref={fileInputRef}
+                                                    className="hidden"
                                                 />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
-                                <Button type="submit" disabled={isUpdatingAvatar || !selectedFile}>
-                                    {isUpdatingAvatar ? 'Updating...' : 'Update Avatar'}
-                                </Button>
                             </form>
                         </Form>
                         <EditProfileButton userId={user!.id} />

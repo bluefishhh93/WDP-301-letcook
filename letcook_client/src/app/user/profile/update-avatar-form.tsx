@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,7 +48,6 @@ export default function UpdateAvatarForm({}) {
             if (response.ok) {
                 const result = await response.json();
                 setUploadedImageUrl(result.url);
-                console.log('Image uploaded:', result.url);
             } else {
                 const errorData = await response.json();
                 console.error('Upload failed:', errorData.error);

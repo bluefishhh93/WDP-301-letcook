@@ -22,7 +22,7 @@ const authOptions: AuthOptions = {
   ],
   session: {
     maxAge: 1000 * 60, //15 minutes
-  },
+  }  ,
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
       const initUser: User = {
@@ -46,7 +46,7 @@ const authOptions: AuthOptions = {
         return false;
       }
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       // console.log('jwt chay');
       if (user) {
         token.accessToken = user.accessToken;
@@ -70,7 +70,11 @@ const authOptions: AuthOptions = {
         token.avatar = user.avatar;
         token.role = user.role;
       }
-      return { ...token, ...user };
+
+      if (trigger === 'update' && user) {
+        return { ...token, ...user };
+      }
+      return token;
     },
     async session({ session, token }) {
       session.user.accessToken = token.accessToken as string;
@@ -80,11 +84,7 @@ const authOptions: AuthOptions = {
       session.user.email = token.email as string;
       session.user.avatar = token.avatar as string;
       session.user.role = token.role as 'user' | 'admin';
-      // console.log(session.expires);
-      console.log(refreshToken(session.expires));
-      if (token.avatar !== session.user.avatar) {
-        session.user.avatar = token.avatar as string;
-      }
+
       return session;
     },
   },
