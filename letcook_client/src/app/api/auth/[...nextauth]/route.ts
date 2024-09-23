@@ -50,19 +50,6 @@ const authOptions: AuthOptions = {
       // console.log('jwt chay');
       if (user) {
         token.accessToken = user.accessToken;
-        // JWT.verify(
-        //   user.accessToken,
-        //   process.env.JWT_SECRET as string,
-        //   async (err: any, decoded: any) => {
-        //     console.log('Decoded:', decoded);
-        //     //check if token is expired
-        //     if (decoded && decoded.exp < Date.now() / 1000) {
-        //       console.log('Token expired');
-        //       await refreshToken(token);
-        //     }
-        //   },
-        // );
-
         token.refreshToken = user.refreshToken;
         token.id = user.id;
         token.username = user.username;

@@ -7,6 +7,7 @@ interface ProfileType {
     phone: string;
     address: string;
     bio: string;
+    avatar: string;
 }
 
 interface UseProfileResult {

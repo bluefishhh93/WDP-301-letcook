@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import MyPosts from "./MyPost";
 import MyRecipes from "./MyRecipe";
 import SavedRecipes from "./SavedRecipe";
@@ -21,6 +21,7 @@ import EditProfileButton from "./EditProfileButton";
 import { signIn, useSession } from "next-auth/react";
 import { Upload } from "lucide-react";
 import { revalidatePath } from "next/cache";
+import useProfile from "@/hooks/useProfile";
 
 type Section = 'posts' | 'my-recipes' | 'saved-recipes';
 
@@ -51,6 +52,7 @@ const UserProfile = () => {
     const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
     const { data: session, update } = useSession();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const { profile } = useProfile(user?.id || '');
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -118,11 +120,8 @@ const UserProfile = () => {
 
             const { url } = await response.json();
             const res = await UserService.updateProfile(user.id, { avatar: url });
-            console.log(res);
-            update({ avatar: url });
-            
-            const event = new Event("visibilitychange");
-            document.dispatchEvent(event);
+            update({ ...session, user: { ...session?.user, avatar: url } });
+            revalidatePath('/user');
             form.reset();
         } catch (error) {
             console.error('Error uploading image:', error);
@@ -165,13 +164,16 @@ const UserProfile = () => {
             <div className="bg-muted rounded-t-lg p-6 md:p-8">
                 <div className="flex items-center gap-4 mb-4">
                     <div className="relative">
-                        <Image
-                            src={user?.avatar || 'https://www.gravatar.com/avatar/3b3be63a4c2a439b013787725dfce802?d=identicon'}
-                            alt="avatar"
-                            width={80}
-                            height={80}
-                            className="rounded-full object-cover"
-                        />
+                        <Avatar className="w-20 h-20">
+                            <AvatarImage
+                                src={profile?.avatar}
+                                alt="avatar"
+                                className="rounded-full object-cover"
+                            />
+                            <AvatarFallback>
+                                {user?.email?.charAt(0).toUpperCase() || 'U'}
+                            </AvatarFallback>
+                        </Avatar>
                         <button
                             type="button"
                             className="absolute bottom-0 right-0 flex items-center justify-center rounded-full bg-yellow-400 p-2 text-white shadow-lg ring-1 ring-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-600"
