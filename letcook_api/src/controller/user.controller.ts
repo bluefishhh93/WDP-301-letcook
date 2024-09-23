@@ -14,6 +14,25 @@ export default class UserController {
       next(error);
     }
   };
+
+
+  updateUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = await this.userService.updateUser(req.params.id, req.body);
+      res.json(user);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getUserById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const user = await this.userService.findUserById(req.params.id);
+      res.json(user);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export const userController = new UserController();

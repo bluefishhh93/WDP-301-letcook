@@ -82,6 +82,9 @@ const authOptions: AuthOptions = {
       session.user.role = token.role as 'user' | 'admin';
       // console.log(session.expires);
       console.log(refreshToken(session.expires));
+      if (token.avatar !== session.user.avatar) {
+        session.user.avatar = token.avatar as string;
+      }
       return session;
     },
   },

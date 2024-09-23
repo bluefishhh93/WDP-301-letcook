@@ -17,6 +17,9 @@ export class User {
   bio?: string;
 
   @Column('text', { nullable: true })
+  phone?: string;
+
+  @Column('text', { nullable: true })
   address?: string;
 
   @Column('text', { nullable: true })

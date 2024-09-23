@@ -14,6 +14,7 @@ import reviewRouter from "@/router/review.router";
 import dashboardRouter from "@/router/dashboard.router";
 import favoriteRouter from "@/router/favourite.router";
 import path from "path";
+import userRouter from "./user.router";
 export default [
   { path: "/api/auth", router: authRouter },
   { path: "/api", router: postRouter },
@@ -30,4 +31,5 @@ export default [
   { path: "/api", router: reviewRouter },
   { path: "/api", router: dashboardRouter },
   { path: "/api", router: favoriteRouter },
+  { path: "/api", router: userRouter },
 ];

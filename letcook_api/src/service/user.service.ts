@@ -32,6 +32,10 @@ class UserService {
     return await this.userRepository.count();
   }
 
+  async updateUser(userId: string, user: Partial<User>) {
+    return await this.userRepository.update(userId, user);
+  }
+
 }
 
 export default UserService;
