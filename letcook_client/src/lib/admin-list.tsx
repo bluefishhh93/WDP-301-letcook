@@ -60,6 +60,11 @@ export function getMenuList(pathname: string): Group[] {
               label: 'Product Category',
               active: pathname === '/admin/productCategory',
             },
+            {
+              href: '/admin/measurement',
+              label: 'Measurement',
+              active: pathname === '/admin/measurement',
+            },
           ],
         },
         {

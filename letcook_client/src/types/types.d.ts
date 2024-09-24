@@ -126,6 +126,8 @@ declare module "CustomTypes" {
     email?: string;
     paymentMethod: string;
     shipAddress?: string;
+    paymentStatus: string;
+    shippingStatus: string;
   };
 
   export interface OrderItemType {

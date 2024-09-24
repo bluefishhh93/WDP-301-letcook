@@ -70,6 +70,9 @@ const OrderCard: React.FC<{
             <p className="text-xs text-muted-foreground">{order.email}</p>
             <p className="text-xs text-muted-foreground">{order.phone}</p>
             <p className="text-xs text-muted-foreground">{order.shipAddress}</p>
+            <p className="text-xs text-muted-foreground">{order.paymentMethod}</p>
+            <p className="text-xs text-muted-foreground">{order.paymentStatus}</p>
+            <p className="text-xs text-muted-foreground">{order.shippingStatus}</p>
           </div>
           <div className="text-right">
             <p className="text-sm font-medium">

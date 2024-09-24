@@ -6,32 +6,36 @@ const router = express.Router();
 const upload = multer({ dest: "uploads/" });
 const recipeController = new RecipeController();
 
+// General recipe routes
 router.get("/recipe/all", recipeController.getAll);
+router.get("/recipe", recipeController.getRecipe);
+router.post("/recipe", upload.any(), recipeController.createNewRecipe);
+
+// Recipe search and ingredients
 router.get("/recipe/search", recipeController.searchRecipes);
-router.post("/recipe/:id/accept", recipeController.acceptRecipe);
-router.post("/recipe/:id/reject", recipeController.rejectRecipe);
+router.get("/recipe/ingredients", recipeController.getIngredients);
 
-router.put("/recipe/:id/ingredients", recipeController.updateRecipeIngredients);
+// Recipe tags
+router.get("/recipe/tag", recipeController.getAllTagsName);
+router.post("/recipe/tag", recipeController.createRecipeTag);
+router.post("/recipe/tag/:recipeId", recipeController.addTags);
 
-router  
-  .post("/recipe", upload.any(), recipeController.createNewRecipe)
-  .get("/recipe", recipeController.getRecipe);
-
+// Single recipe operations
 router
   .get("/recipe/:id", recipeController.getRecipeById)
   .put("/recipe/:id", recipeController.updateRecipe);
+router.put("/recipe/:id/ingredients", recipeController.updateRecipeIngredients);
+router.post("/recipe/:id/accept", recipeController.acceptRecipe);
+router.post("/recipe/:id/reject", recipeController.rejectRecipe);
 
+// Recipe comments and reactions
 router.post("/recipe/:id/comments", recipeController.addComment);
 router
   .post("/recipe/:id/reactions", recipeController.reaction)
   .get("/recipe/:id/reactions", recipeController.getReaction);
 
-router.get("/recipe/tag", recipeController.getAllTagsName);
-router.post("/recipe/tag", recipeController.createRecipeTag);
-router.post("/recipe/tag/:recipeId", recipeController.addTags);
+// User-specific recipe routes
 router.get("/recipe/user/:userId", recipeController.getRecipesWithUserId);
 router.get("/recipe/favorite/:userId", recipeController.getFavoriteRecipes);
 
-
-router.get("/recipe/ingredients", recipeController.getIngredients);
 export default router;

@@ -2,12 +2,12 @@
 
 import { ReactNode, createContext, useRef } from "react";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Drawer,
@@ -55,22 +55,22 @@ export function InteractiveOverlay({
       }}
     >
       {!isMobile ? (
-        <Sheet
+        <Dialog
           open={isOpen}
           onOpenChange={(value) => {
             if (preventCloseRef.current) return;
             setIsOpen(value);
           }}
         >
-          <SheetContent>
-            <SheetHeader className="px-2">
-              <SheetTitle>{title}</SheetTitle>
-              <SheetDescription>{description}</SheetDescription>
-            </SheetHeader>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{title}</DialogTitle>
+              <DialogDescription>{description}</DialogDescription>
+            </DialogHeader>
 
-            <ScrollArea className="h-[95%] pr-8 pt-4 pb-8">{form}</ScrollArea>
-          </SheetContent>
-        </Sheet>
+            <ScrollArea className="h-[80vh] pr-8 pt-4 pb-8">{form}</ScrollArea>
+          </DialogContent>
+        </Dialog>
       ) : (
         <Drawer
           open={isOpen}

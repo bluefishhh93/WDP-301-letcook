@@ -50,6 +50,11 @@ export class Order extends BaseEntity {
 
   @Column({ nullable: true })
   shipDate?: Date; 
-  
+
+  @Column()
+  paymentStatus?: string;
+
+  @Column()
+  shippingStatus?: string;
 
 }

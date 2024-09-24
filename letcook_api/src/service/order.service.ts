@@ -14,7 +14,7 @@ import { OrderItem } from "@/entity/orderItem.entity";
 import { EntityManager, In, Between } from "typeorm";
 import { Product } from "@/entity/product.entity";
 import moment from "moment";
-import {formatMonthName, getMonthRange} from '@/util/date';
+import { formatMonthName, getMonthRange } from '@/util/date';
 
 /**
  * Represents the result of an order creation attempt.
@@ -58,6 +58,8 @@ export class OrderService extends BaseService<Order> {
       paymentMethod: createOrderDto.paymentMethod,
       createdAt: new Date(),
       status: "pending",
+      paymentStatus: createOrderDto.paymentStatus,
+      shippingStatus: createOrderDto.shippingStatus,
     });
 
     return order;
@@ -163,9 +165,14 @@ export class OrderService extends BaseService<Order> {
             return { order: null, insufficientProducts };
           }
 
+          const newOrder = {...createOrderDto, paymentStatus: 'pending', shippingStatus: 'pending'};
+          if(newOrder.paymentMethod === 'vnpay'){
+            newOrder.paymentStatus = 'paid';
+          }
+        
           const order = await this.createOrderItems(
             transactionalEntityManager,
-            createOrderDto
+            newOrder
           );
           return { order, insufficientProducts: [] };
         }
@@ -283,28 +290,28 @@ export class OrderService extends BaseService<Order> {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
     const monthCounts = [];
-  
+
     for (let i = 4; i >= 0; i--) {
       const { start, end } = getMonthRange(year, currentDate.getMonth() - i);
       const count = await this.repository.count({
         where: {
           createdAt: Between(start, end),
         },
-      }); 
+      });
       monthCounts.push(count);
     }
-  
+
     return monthCounts.map((count, index) => ({
       month: formatMonthName(currentDate.getMonth() - 4 + index),
       orders: count,
     }));
   };
-  
+
   getRevenueByMonth = async () => {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
     const monthRevenues = [];
-  
+
     for (let i = 4; i >= 0; i--) {
       const { start, end } = getMonthRange(year, currentDate.getMonth() - i);
       const orders = await this.repository.find({
@@ -312,16 +319,16 @@ export class OrderService extends BaseService<Order> {
           createdAt: Between(start, end),
         },
       });
-  
+
       const revenue = orders.reduce((sum, order) => sum + (order.total ?? 0), 0);
       monthRevenues.push(revenue);
     }
-  
+
     return monthRevenues.map((revenue, index) => ({
       month: formatMonthName(currentDate.getMonth() - 4 + index),
       revenue,
     }));
   };
-  
+
 
 }

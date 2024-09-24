@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useCartStore } from "@/store/useCartStore";
 import { createOrder } from "@/services/order.service";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const usePaymentStatus = (queryString: string) => {
   const { checkoutPayload, clearCart } = useCartStore();

@@ -11,7 +11,6 @@ export default function SideBar() {
   const sidebar = useStore(useSidebarToggle, (state) => state);
 
   if (!sidebar) return null;
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const { size, setSize } = useSize({ name: 'header' });
   return (
     <aside

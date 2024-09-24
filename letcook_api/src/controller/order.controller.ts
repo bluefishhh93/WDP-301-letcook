@@ -138,6 +138,8 @@ export default class OrderController extends BaseController<Order> {
       email: data.email,
       paymentMethod: data.paymentMethod,
       shipAddress: data.shipAddress,
+      paymentStatus: data.paymentStatus,
+      shippingStatus: data.shippingStatus,
     };
   }
 }

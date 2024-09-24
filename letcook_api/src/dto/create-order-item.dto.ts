@@ -39,6 +39,14 @@ export class CreateOrderDto {
   @ValidateNested({ each: true })
   @Type(() => CreateOrderItemDto)
   orderItems!: CreateOrderItemDto[];
+
+  @IsEnum(['pending', 'paid', 'failed'])
+  @IsOptional()
+  paymentStatus?: string;
+
+  @IsEnum(['pending', 'shipping', 'delivered'])
+  @IsOptional()
+  shippingStatus?: string;
 }
 
 
