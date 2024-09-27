@@ -37,9 +37,6 @@ const UpdateImage = forwardRef<
   const [filesToUpload, setFilesToUpload] = useState<FileUploadProgress[]>([]);
   const [filesToDeletes, setFilesToDeletes] = useState<ImgProductType[]>([]);
 
-  console.log("existing file", existingImages);
-  console.log("files to upload", filesToUpload);
-
   const removeExistingImage = (index: number) => {
     if (existingImages[index].id) {
       setFilesToDeletes((prevDeletes) => [

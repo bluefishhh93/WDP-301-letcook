@@ -9,7 +9,6 @@ const UserWrapper = ({ children }: Readonly<{ children: ReactNode }>) => {
   const { user, status } = useAuth();
   const { setIsOpen } = useAuthFormToggle();
   useEffect(() => {
-    console.log(user, status);
     if (!user && status === "unauthenticated") {
       setIsOpen(true);
     }

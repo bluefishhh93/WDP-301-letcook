@@ -66,13 +66,13 @@ const OrderCard: React.FC<{
         <div className="flex justify-between items-start mb-2">
           <div className="w-1/2">
             <p className="text-sm font-medium">Ship Info</p>
-            <p className="text-xs text-muted-foreground">{order.name}</p>
-            <p className="text-xs text-muted-foreground">{order.email}</p>
-            <p className="text-xs text-muted-foreground">{order.phone}</p>
-            <p className="text-xs text-muted-foreground">{order.shipAddress}</p>
-            <p className="text-xs text-muted-foreground">{order.paymentMethod}</p>
-            <p className="text-xs text-muted-foreground">{order.paymentStatus}</p>
-            <p className="text-xs text-muted-foreground">{order.shippingStatus}</p>
+            <p className="text-xs text-muted-foreground"><span className="font-bold">Name:</span> {order.name}</p>
+            <p className="text-xs text-muted-foreground"><span className="font-bold">Email:</span> {order.email}</p>
+            <p className="text-xs text-muted-foreground"><span className="font-bold">Phone:</span> {order.phone}</p>
+            <p className="text-xs text-muted-foreground"><span className="font-bold">Address:</span> {order.shipAddress}</p>
+            <p className="text-xs text-muted-foreground"><span className="font-bold">Payment method:</span> {order.paymentMethod}</p>
+            <p className="text-xs text-muted-foreground"><span className="font-bold">Payment status:</span> {order.paymentStatus}</p>
+            <p className="text-xs text-muted-foreground"><span className="font-bold">Shipping status:</span> {order.shippingStatus}</p>
           </div>
           <div className="text-right">
             <p className="text-sm font-medium">

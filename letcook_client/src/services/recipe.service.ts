@@ -13,17 +13,13 @@ export const createRecipe = async (
   recipeData: any
 ): Promise<RecipeResponse> => {
   try {
-    console.log("data", recipeData);
     const res = await http.post(`${API_URL}`, recipeData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
-    console.error("res", res.status);
-    console.error("res", res.data);
     return { status: res.status, data: res.data };
   } catch (error) {
-    console.error("Error creating recipe:", error);
     return { status: 500, data: null };
   }
 };

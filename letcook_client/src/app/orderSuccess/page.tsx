@@ -8,7 +8,6 @@ import { spaceMono } from "@/components/ui.custom/fonts";
 import { useCartStore } from "@/store/useCartStore";
 
 export default function OrderSuccessPage() {
-  console.log("rendering order success page");
   const checkoutPayload = useCartStore((state) => state.checkoutPayload);
   const router = useRouter();
   const { clearCheckoutPayload } = useCartStore();

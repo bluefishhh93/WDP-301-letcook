@@ -88,7 +88,6 @@ const UpdateProductDialog: React.FC<UpdateProductDialogProps> = ({
     try {
       setLoading(true);
       const values = methods.getValues();
-      console.log("Form values:", values);
 
       const uploadedImages = await triggerImageUpload().then((images) =>
         images.map((image) => ({

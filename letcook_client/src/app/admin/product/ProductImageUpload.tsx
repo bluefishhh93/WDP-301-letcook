@@ -174,7 +174,6 @@ const ProductImageUpload = forwardRef<ProductImageUploadHandle, ImageUploadProps
     }, [onUploadProgress]);
 
     const handleUpload = async () => {
-      console.log(filesToUpload);
       const fileUploadPromises = filesToUpload.map((fileUpload) => {
         const formData = new FormData();
         formData.append("files", fileUpload.file);

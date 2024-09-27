@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Recipe } from 'CustomTypes';
 import { ChefHat, Clock, Edit2, Trash2, Users } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface RecipeCardProps {
     recipe: Recipe;
@@ -17,7 +18,9 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onEdit, onDelete }) => 
         <Link href={`/recipe/${recipe._id}`}>
             <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
                 <div className="relative aspect-video">
-                    <img
+                    <Image
+                        width={100}
+                        height={100}
                         src={recipe.images[0] || "/placeholder-recipe.jpg"}
                         alt={recipe.title}
                         className="object-cover w-full h-full"

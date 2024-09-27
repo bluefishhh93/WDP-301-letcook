@@ -118,7 +118,6 @@ const EnhancedRecipeForm: React.FC = () => {
       if (response.status === 200) {
         setSubmittedRecipe(response.data as Recipe);
         setIsSuccessModalOpen(true);
-        console.log("Recipe submitted successfully");
       } else {
         // Handle error (e.g., show an error message)
         console.error("Failed to submit recipe");

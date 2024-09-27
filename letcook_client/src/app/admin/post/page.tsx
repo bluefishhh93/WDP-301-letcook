@@ -13,7 +13,6 @@ export default function Post() {
       try {
         const res = await axios.get('/api/post/all');
         setData(res.data);
-        console.log(res.data);
       } catch (error) {
         console.error('Error fetching posts:', error);
       }

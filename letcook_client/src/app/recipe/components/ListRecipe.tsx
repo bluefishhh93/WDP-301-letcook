@@ -30,7 +30,6 @@ export default function ListRecipe({
         const queryString =
           queryParams.length > 0 ? `?${queryParams.join("&")}` : "";
         const res = await axios.get(`/api/recipe${queryString}`);
-        console.log(res.data);
         setRecipes(res.data.recipes);
         setTotal(res.data.total);
         setIsLoading(false);
@@ -41,7 +40,6 @@ export default function ListRecipe({
       setRecipes([]);
     };
   }, [tag, page]);
-  console.log(recipes, total, page);
   return (
     <>
       <div>

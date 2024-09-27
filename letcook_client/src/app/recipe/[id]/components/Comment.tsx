@@ -107,7 +107,6 @@ function AddCommentForm({
       // Comment posted successfully
       setCommentText("");
       // You might want to update the comments list here or trigger a refetch
-      console.log("Comment posted:", response.data);
     } catch (error) {
       console.error("Error posting comment:", error);
       // Handle error (e.g., show error message to user)

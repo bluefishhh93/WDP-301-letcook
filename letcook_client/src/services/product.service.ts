@@ -10,7 +10,6 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const fetchProducts = async (params: QueryParams) => {
   const queryString = buildQueryString(params);
-  console.log('queryString', queryString);
   const response = await  http.get(`/api/shop/products?${queryString}`);
   const data = await response.data;
   return data;

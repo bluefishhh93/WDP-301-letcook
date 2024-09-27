@@ -9,7 +9,6 @@ function useDebounce<T>(value: T, delay: number): T {
     }, delay);
 
     return () => {
-      console.log('clear');
       clearTimeout(handler);
     };
   }, [value, delay]);

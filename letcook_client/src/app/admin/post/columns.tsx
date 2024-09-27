@@ -80,7 +80,6 @@ export const createColumns = (): ColumnDef<any>[] => [
       const post = row.original;
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const [isActivate, setIsActivate] = useState(post.isActivate);
-      console.log(post);
       return (
         <Checkbox
           checked={isActivate}

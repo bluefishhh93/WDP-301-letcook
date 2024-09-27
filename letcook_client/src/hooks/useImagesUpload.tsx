@@ -26,7 +26,6 @@ export default function useImagesUpload(type: string) {
   useEffect(() => {
     const uploadFiles = async (data: any) => {
       const res = await axios.post(`/api/uploads/${type}`, data);
-      console.log(res.data);
     };
     if (files) {
       const formData = new FormData();

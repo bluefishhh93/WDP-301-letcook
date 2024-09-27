@@ -66,6 +66,7 @@ interface AddCommentProps {
   commentId?: string;
   onToggleReply?: () => void;
 }
+// eslint-disable-next-line react/display-name
 export const AddComment = forwardRef(
   (
     { postId, commentId, onToggleReply }: AddCommentProps,
@@ -85,7 +86,6 @@ export const AddComment = forwardRef(
       if (commentId) {
         data.commentId = commentId;
       }
-      console.log(data);
       const res = await axios.post('/api/comment', data);
       if (res.status === 200) {
         form.reset();
@@ -137,6 +137,7 @@ export const AddComment = forwardRef(
   },
 );
 
+// eslint-disable-next-line react/display-name
 export const ReplyComment = forwardRef(
   (
     {

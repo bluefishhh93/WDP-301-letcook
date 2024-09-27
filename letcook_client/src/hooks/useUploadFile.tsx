@@ -8,7 +8,6 @@ export default function useUploadFile(type: string) {
   const [filePath, setFilePath] = useState<string>("");
   const handleChange = async () => {
     const formData = new FormData(formRef.current!);
-    console.log(`${process.env.NEXT_PUBLIC_API_URL}/api/uploads/${type}`);
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/uploads/${type}`,
       {
@@ -17,7 +16,6 @@ export default function useUploadFile(type: string) {
       },
     );
     const data = await res.json();
-    console.log(data);
     setFilePath(`${process.env.NEXT_PUBLIC_API_URL}/${data.filePath}`);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -43,6 +41,7 @@ export default function useUploadFile(type: string) {
 
   const InputFile = useCallback(
     ({ onChange }: { onChange: (filePath: string) => void }) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
       useEffect(() => {
         if (filePath) {
           onChange(filePath);
