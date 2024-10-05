@@ -4,8 +4,8 @@ import { CreateOrder } from 'giaohangnhanh/lib/order';
 
 
 const GHN_API_URL='https://dev-online-gateway.ghn.vn/shiip/public-api/v2/'
-const GHN_API_TOKEN='a9677394-7d99-11ef-8e53-0a00184fe694'
-const GHN_SHOP_ID=194656
+const GHN_API_TOKEN= process.env.GHN_API_TOKEN as string
+const GHN_SHOP_ID=parseInt(process.env.GHN_SHOP_ID as string)
 const GHN_TRACKING_URL='https://tracking.ghn.dev/'
 const GHN_SHOP_DISTRICT_ID='1529'
 const GHN_SHOP_WARD_CODE='20301'
