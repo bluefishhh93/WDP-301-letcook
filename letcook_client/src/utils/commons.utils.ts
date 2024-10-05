@@ -41,3 +41,9 @@ export const getItemList = (cart: ProductType[]): CartItemType[] => {
         subtotal: item.price * item.quantity,
     }));
 };
+
+export function vietnamCurrency(price: number) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+  }
+  
+  

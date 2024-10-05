@@ -3,6 +3,7 @@ import Loading from "./Loading";
 import ErrorAccessDenied from "./error/ErrorAccessDenied";
 import { ReactNode, useEffect } from "react";
 import { useAuthFormToggle } from "@/hooks/useAuthFormToggle";
+import React from "react";
 
 const AdminWrapper = ({
   children,

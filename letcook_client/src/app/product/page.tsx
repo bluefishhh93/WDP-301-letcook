@@ -102,6 +102,7 @@ export default function Component() {
       setSearchTerm("");
     } else if (searchTerm !== "" || !value.startsWith(" ")) {
       setSearchTerm(value);
+      setPage(1);
     }
   };
 

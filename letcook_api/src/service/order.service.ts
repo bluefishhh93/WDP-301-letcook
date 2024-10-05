@@ -134,10 +134,11 @@ export class OrderService extends BaseService<Order> {
       }
     }
 
-    order.total = order.orderItems.reduce(
-      (sum, item) => sum + item.subtotal,
-      0
-    );
+    order.total = createOrderDto.totalPrice;
+    // order.total = order.orderItems.reduce(
+    //   (sum, item) => sum + item.subtotal,
+    //   0
+    // );
     return await transactionalEntityManager.save(order);
   }
 

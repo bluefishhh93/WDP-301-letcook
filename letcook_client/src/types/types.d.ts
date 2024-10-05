@@ -75,6 +75,10 @@ declare module "CustomTypes" {
     province: string; // Add this line if 'province' is a field in your form
     district: string; // Add this line if 'district' is a field in your form
     address: string;
+    provinceId: number;
+    districtId: number;
+    wardId: number;
+    fee: number;
   };
 
   export interface PaginatedProducts {

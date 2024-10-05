@@ -47,6 +47,10 @@ export class CreateOrderDto {
   @IsEnum(['pending', 'shipping', 'delivered'])
   @IsOptional()
   shippingStatus?: string;
+
+  @IsNumber()
+  @IsOptional()
+  totalPrice?: number;
 }
 
 

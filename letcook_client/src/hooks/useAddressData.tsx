@@ -1,67 +1,74 @@
 import { set } from "date-fns";
 import { useState, useEffect } from "react";
 
+
 interface DistrictOption {
-  district_id: string;
-  district_name: string;
-  district_type: string;
+  DistrictID: number;
+  ProvinceID: number;
+  DistrictName: string;
+  Code: string;
+  Type: number;
+  SupportType: number;
 }
 
 interface WardOption {
-  ward_id: string;
-  ward_name: string;
-  ward_type: string;
+  WardCode: string;
+  WardName: string;
 }
 
 interface ProvinceOption {
-  province_id: string;
-  province_name: string;
-  province_type: string;
+  ProvinceID: number;
+  ProvinceName: string;
 }
 
 export const useAddressData = () => {
-//   const [provinces, setProvinces] = useState<ProvinceOption[]>([]);
+  const [provinces, setProvinces] = useState<ProvinceOption[]>([]);
   const [districts, setDistricts] = useState<DistrictOption[]>([]);
   const [wards, setWards] = useState<WardOption[]>([]);
 
-  useEffect(() => {
-    // fetchProvinces();
-    fetchDistricts("48");
-  }, []);
+  // useEffect(() => {
+  //   // fetchProvinces();
+  //   fetchDistricts("48");
+  // }, []);
 
-//   const fetchProvinces = async () => {
-//     try {
-//       const response = await fetch("https://vapi.vnappmob.com/api/province/");
-//       const data = await response.json();
-//       setProvinces(data.results);
-//     } catch (error) {
-//       console.error("Error fetching provinces:", error);    
-//     }
-//   };
+  const fetchProvinces = async () => {
+    try {
+      const response  = await fetch('/api/address?type=province')
+      const data = await response.json()
+      setProvinces(data)
+    } catch (error) {
+      console.error("Error fetching provinces:", error);  
+      setProvinces([]);
+    }
+  };
 
-  const fetchDistricts = async (provinceId: string) => {
+  const fetchDistricts = async (provinceId: number) => {
     try {
       const response = await fetch(
-        `https://vapi.vnappmob.com/api/province/district/${provinceId}`
+        `/api/address?type=district&provinceId=${provinceId}`
       );
       const data = await response.json();
-      setDistricts(data.results);
+      setDistricts(data);
     } catch (error) {
       console.error("Error fetching districts:", error);
+      setDistricts([]);
     }
   };
 
-  const fetchWards = async (districtId: string) => {
+  const fetchWards = async (districtId: number) => {
     try {
-      const response = await fetch(
-        `https://vapi.vnappmob.com/api/province/ward/${districtId}`
-      );
+      const response = await fetch(`/api/address?type=ward&districtId=${districtId}`);
       const data = await response.json();
-      setWards(data.results);
+      setWards(data);
     } catch (error) {
       console.error("Error fetching wards:", error);
+      setWards([]);
     }
   };
 
-  return { districts, wards, fetchDistricts, fetchWards };
+  useEffect(() => {
+    fetchDistricts(203); // Fetch districts for the default province (203) only once when the component mounts
+  }, []);
+
+  return { provinces, districts, wards, fetchProvinces, fetchDistricts, fetchWards };
 };
