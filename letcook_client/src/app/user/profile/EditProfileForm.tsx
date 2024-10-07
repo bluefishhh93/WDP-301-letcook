@@ -6,12 +6,12 @@ import { useContext, useEffect } from "react";
 import { ToggleContext } from "@/components/interactive-overlay";
 import { useToast } from "@/components/ui/use-toast";
 import useProfile from "@/hooks/useProfile";
-import { updateProfile } from "@/services/user.service";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { updateUserProfile } from "@/services/user.service";
 
 //schema
 const userSchema = z.object({
@@ -57,7 +57,7 @@ export default function EditProfileForm({ userId }: { userId: string }) {
 
     const onSubmit = async (data: FormValues) => {
         try {
-            const response = await updateProfile(userId, data);
+            const response = await updateUserProfile(userId, data);
             toast({
                 title: "Profile updated",
                 description: "Your profile has been successfully updated.",

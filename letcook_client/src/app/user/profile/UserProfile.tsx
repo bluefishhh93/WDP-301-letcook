@@ -119,7 +119,7 @@ const UserProfile = () => {
             }
 
             const { url } = await response.json();
-            const res = await UserService.updateProfile(user.id, { avatar: url });
+            const res = await UserService.updateUserProfile(user.id, { avatar: url });
             update({ ...session, user: { ...session?.user, avatar: url } });
             revalidatePath('/user');
             form.reset();
