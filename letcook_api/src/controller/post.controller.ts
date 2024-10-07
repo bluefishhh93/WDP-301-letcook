@@ -32,28 +32,18 @@ export default class PostController {
   };
   getPost = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const tag = req.query.tag ? (req.query.tag as string) : undefined;
-      const skip = req.query.skip
-        ? parseInt(req.query.skip as string)
-        : undefined;
-      const take = req.query.take
-        ? parseInt(req.query.take as string)
-        : undefined;
+      const tag = req.query.tag ? req.query.tag as string : undefined;
+      const skip = req.query.skip ? parseInt(req.query.skip as string) : undefined;
+      const take = req.query.take ? parseInt(req.query.take as string) : undefined;
 
       const { postWithUser: post, total } =
         await this.postService.getPostWithUser(tag, skip, take);
 
-      return (
-        res
-          .status(200)
-          // .json(allPosts.map((post) => this.postService.mapPostToDto(post)));
-          .json({
-            post,
-            total,
-          })
-      );
+      res.status(200).json({
+        post,
+        total,
+      });
     } catch (error) {
-      // res.status(500).json({ message: 'Failed to fetch posts', error });
       next(error);
     }
   };

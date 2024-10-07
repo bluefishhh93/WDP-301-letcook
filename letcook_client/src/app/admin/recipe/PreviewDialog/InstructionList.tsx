@@ -18,19 +18,19 @@ const InstructionsList: FC<InstructionsListProps> = ({ steps }) => (
               <span className="mr-2 font-bold text-md">{index + 1}.</span>
               <p>{step.description}</p>
             </div>
-            {step.images.length > 0 && (
+            {step.images && step.images.length > 0 && (
               <div className="grid grid-cols-3 gap-1 mt-2">
-                {step.images.map((image, imgIndex) => (
-                  <Image
-                    key={imgIndex}
-                    src={image}
-                    alt={`Step ${index + 1} Image ${imgIndex + 1}`}
-                    width={150}
-                    height={100}
-                    className="rounded-md object-cover aspect-[3/2] shadow"
-                  />
-                ))}
-              </div>
+              {step.images.map((image, imgIndex) => (
+                <Image
+                  key={imgIndex}
+                  src={image}
+                  alt={`Step ${index + 1} Image ${imgIndex + 1}`}
+                  width={150}
+                  height={100}
+                  className="rounded-md object-cover aspect-[3/2] shadow"
+                />
+              ))}
+            </div>
             )}
           </li>
         ))}

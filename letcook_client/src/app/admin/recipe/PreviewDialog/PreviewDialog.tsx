@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Image from 'next/image';
 import { Eye, Printer } from 'lucide-react';
@@ -34,6 +34,7 @@ const PreviewDialog: FC<PreviewDialogProps> = ({ recipe, onAction }) => {
                     <Eye size={16} />
                 </Button>
             </DialogTrigger>
+            <DialogDescription></DialogDescription>
             <DialogContent className="sm:max-w-[600px] p-2 rounded-lg shadow-xl">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold mb-2">{recipe.title}</DialogTitle>

@@ -40,12 +40,41 @@ export default class RecipeService {
   /**
    * Get all recipes
    * */
-  async getAll(): Promise<Recipe[]> {
-    return await this.recipeRepository.find({
-      order: {
-        createdAt: "DESC",
-      },
-    });
+  async getAll(): Promise<any> {
+    const recipesData = await this.recipeRepository.find();
+    const recipeDetails = await Promise.all(
+      recipesData.map(async (recipe: Recipe) => {
+        const steps = await this.stepRepository.find({
+          where: { 
+            _id: { $in: recipe.steps },
+          },
+        } as any);
+        const ingredients = await this.ingredientRepository.find({
+          where: {
+            _id: { $in: recipe.ingredients },
+          },
+        } as any);
+        const _user = await this.UserService.findUserById(recipe.userId!);
+        const user = _user
+          ? {
+            id: _user.id,
+            name: _user.username,
+            avatar: _user.avatar,
+          }
+          : {
+            id: undefined,
+            name: undefined,
+            avatar: undefined,
+          };
+        return {
+          ...recipe,
+          steps,
+          ingredients,
+          user,
+        };
+      }),
+    );
+    return { recipes: recipeDetails };
   }
 
   /**

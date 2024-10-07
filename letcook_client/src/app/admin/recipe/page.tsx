@@ -40,7 +40,7 @@ export default function RecipePage() {
   useEffect(() => {
     const fetching = async () => {
       try {
-        const res = await axios.get('/api/recipe');
+        const res = await axios.get('/api/recipe/all');
         setData(res.data.recipes); // Adjusted to match the backend response structure
       } catch (error) {
         console.error('Error fetching recipes:', error);
