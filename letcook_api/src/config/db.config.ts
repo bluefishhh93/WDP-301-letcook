@@ -32,7 +32,7 @@ import { Favorite } from "@/entity/favourite.entity";
 const MongoDataSource = new DataSource({
   type: "mongodb",
   // url: `mongodb+srv://${env.MONGO_USER}:${env.MONGO_PASS}@${env.MONGO_HOST}/${env.MONGO_DB}?retryWrites=true&w=majority`,
-  url: ``,
+  url: `mongodb://localhost:27017/api`,
 
   // host: env.MONGO_HOST,
   // port: env.MONGO_PORT,
@@ -67,10 +67,10 @@ const MongoDataSource = new DataSource({
 const PostgresDataSource = new DataSource({
   type: "postgres",
   // url: env.POSTGRES_EXTERNAL_URL,
-  url: "",
-  ssl: {
-    rejectUnauthorized: false, // This is important if you don't have a custom CA
-  },
+  url: "postgresql://postgres:1121212@localhost:5432/letcook",
+  // ssl: {
+  //   rejectUnauthorized: false, // This is important if you don't have a custom CA
+  // },
   synchronize: true,
   logging: false,
   entities: [
