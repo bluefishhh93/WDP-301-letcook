@@ -91,8 +91,8 @@ export default class RecipeController {
       const skip = req.query.skip ? parseInt(req.query.skip as string) : undefined;
       const take = req.query.take ? parseInt(req.query.take as string) : undefined;
       const isPublic = req.query.isPublic ? req.query.isPublic === 'true' : undefined;
-      const { recipes, total } = await this.recipeService.getRecipe(skip, take , isPublic);
-      
+      const { recipes, total } = await this.recipeService.getRecipe(skip, take, isPublic);
+
 
       res.status(200).json({
         message: "Recipes fetched successfully",
@@ -278,20 +278,18 @@ export default class RecipeController {
     }
   };
 
-  
-
   searchRecipes = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = req.query.query as string;
-      const tags: string[] = []; 
-      const ingredients: string[] = Array.isArray(req.query.ingredients) 
+      const tags: string[] = [];
+      const ingredients: string[] = Array.isArray(req.query.ingredients)
         ? req.query.ingredients as string[]
-        : req.query.ingredients 
-        ? [req.query.ingredients as string] 
-        : [];
+        : req.query.ingredients
+          ? [req.query.ingredients as string]
+          : [];
       const skip = req.query.skip ? parseInt(req.query.skip as string) : undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
-      
+
       const recipes = await this.recipeService.searchRecipes(query, tags, ingredients, skip, limit);
       res.status(200).json(recipes);
     } catch (error) {
@@ -318,5 +316,52 @@ export default class RecipeController {
       res.status(500).json({ message: 'Failed to fetch favorite recipes', error });
     }
   }
+
+  reportRecipe = async (req: Request, res: Response) => {
+    try {
+      const { recipeId } = req.params;
+      const { userId, report } = req.body;
+
+      const reportRecipe = await this.recipeService.reportRecipe(recipeId, userId, report);
+      
+      res.status(201).json({ message: 'Recipe reported successfully', reportRecipe });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to report recipe', error });
+    }
+  }
+
+  getAllReportedRecipes = async (req: Request, res: Response) => {
+
+    try {
+      const recipes = await this.recipeService.getAllReportedRecipes();
+      res.json(recipes);
+
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch reported recipes', error });
+    }
+
+  }
+
+  getReportByRecipeId = async (req: Request, res: Response) => {
+    const { recipeId } = req.params;
+    try {
+      const recipe = await this.recipeService.getReportByRecipeId(recipeId);
+      res.json(recipe);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch reported recipe', error });
+    }
+  }
+
+  blockRecipe = async (req: Request, res: Response) => {
+    const { recipeId } = req.params;
+
+    try {
+      const recipe = await this.recipeService.blockRecipe(recipeId);
+      res.json(recipe);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to block recipe', error });
+    }
+  }
+
 }
 

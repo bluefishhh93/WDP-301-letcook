@@ -1,16 +1,16 @@
-
-"use client"
-import React, { useEffect, useState } from 'react';
-import { Recipe } from 'CustomTypes';
-import HeroSection from './components/HeroSection';
-import QuickFacts from './components/QuickFacts';
-import Instructions from './components/Instructions';
-import Sidebar from './components/Sidebar';
-import { useRouter } from 'next/navigation';
-import * as RecipeService from '@/services/recipe.service';
+"use client";
+import React, { useEffect, useState } from "react";
+import { Recipe } from "CustomTypes";
+import HeroSection from "./components/HeroSection";
+import QuickFacts from "./components/QuickFacts";
+import Instructions from "./components/Instructions";
+import Sidebar from "./components/Sidebar";
+import { useRouter } from "next/navigation";
+import * as RecipeService from "@/services/recipe.service";
 import RecipeComment from "@/app/recipe/[id]/components/Comment";
-import Cart from '@/components/cart/Cart';
-import Loading from './components/loading';
+import Cart from "@/components/cart/Cart";
+import Loading from "./components/loading";
+import ErrorAccessDenied from "@/components/error/ErrorAccessDenied";
 
 interface RecipePageProps {
   params: {
@@ -19,15 +19,13 @@ interface RecipePageProps {
 }
 
 const RecipePage: React.FC<RecipePageProps> = ({ params }) => {
-  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  const delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
   const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   useEffect(() => {
     const fetchRecipeData = async () => {
-      // if (isNaN(params.id)) {
-      //   router.push("/404");
-      //   return;
-      // }
       try {
         const recipeData = await RecipeService.getRecipeById(params.id);
         if (!recipeData) {
@@ -36,11 +34,14 @@ const RecipePage: React.FC<RecipePageProps> = ({ params }) => {
         }
         setRecipe(recipeData);
       } catch (error) {
-        console.error(error);
+        setError(error.response.data.error);
       }
     };
     fetchRecipeData();
   }, [params.id, router]);
+  if (error) {
+    return <ErrorAccessDenied message={error} />;
+  }
   if (!recipe) {
     return <Loading />;
   }
@@ -61,12 +62,11 @@ const RecipePage: React.FC<RecipePageProps> = ({ params }) => {
         </div>
 
         {/* <RelatedRecipes /> */}
-    
+
         <RecipeComment
           comments={(recipe as any).commentWithUser}
           recipeId={recipe._id}
         />
-
       </div>
       <Cart />
     </div>

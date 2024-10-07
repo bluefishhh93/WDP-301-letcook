@@ -11,6 +11,12 @@ router.get("/recipe/all", recipeController.getAll);
 router.get("/recipe", recipeController.getRecipe);
 router.post("/recipe", upload.any(), recipeController.createNewRecipe);
 
+// Recipe reports
+router.post("/recipe/:recipeId/report", recipeController.reportRecipe);
+router.get("/recipe/reports", recipeController.getAllReportedRecipes);
+router.get("/recipe/:recipeId/report", recipeController.getReportByRecipeId);
+router.post("/recipe/:recipeId/block", recipeController.blockRecipe);
+
 // Recipe search and ingredients
 router.get("/recipe/search", recipeController.searchRecipes);
 router.get("/recipe/ingredients", recipeController.getIngredients);
@@ -37,5 +43,8 @@ router
 // User-specific recipe routes
 router.get("/recipe/user/:userId", recipeController.getRecipesWithUserId);
 router.get("/recipe/favorite/:userId", recipeController.getFavoriteRecipes);
+
+
+
 
 export default router;

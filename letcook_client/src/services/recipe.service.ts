@@ -1,4 +1,5 @@
 import http from "@/lib/axios";
+import exp from "constants";
 import { Ingredient } from "CustomTypes";
 import { Recipe } from "CustomTypes";
 
@@ -96,4 +97,15 @@ export const getFavoriteRecipes = async (userId: string) => {
     throw error;
   }
 }
+
+
+export const reportRecipe = async (recipeId: string, userId: string, report: string) => {
+  try {
+    const { data } = await http.post(`${API_URL}/${recipeId}/report`, { userId, report });
+    return data;
+  } catch (error) {
+    console.error("Error reporting recipe:", error);
+    throw error;
+  }
+};
 

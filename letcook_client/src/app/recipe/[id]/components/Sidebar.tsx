@@ -1,19 +1,15 @@
-import React, { useState } from 'react';
-import { Recipe } from 'CustomTypes';
+import React, { useState } from "react";
+import { Recipe } from "CustomTypes";
 import { Button } from "@/components/ui/button";
-import { CheckIcon, BookmarkIcon, ShareIcon, Flag, PlusIcon, ExternalLink } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import Reactions from './Reactions';
-import { useAddToCart } from '@/hooks/useAddToCart';
-import { getProductById } from '@/services/product.service';
-import { useToast } from '@/hooks/useToast';
-import { ToastContainer } from 'react-toastify';
-import Link from 'next/link';
-import useAuth from '@/hooks/useAuth';
-import FavoriteButton from '@/components/ui.custom/user/FavouriteButton';
-
+import { CheckIcon, ShareIcon, PlusIcon, ExternalLink } from "lucide-react";
+import Reactions from "./Reactions";
+import { useAddToCart } from "@/hooks/useAddToCart";
+import { getProductById } from "@/services/product.service";
+import { ToastContainer } from "react-toastify";
+import Link from "next/link";
+import useAuth from "@/hooks/useAuth";
+import FavoriteButton from "@/components/ui.custom/user/FavouriteButton";
+import ReportDialog from "./ReportDialog";
 
 interface SidebarProps {
   recipe: Recipe;
@@ -21,13 +17,12 @@ interface SidebarProps {
 
 const toastConfig = {
   autoClose: 1000,
-}
+};
 
 const Sidebar: React.FC<SidebarProps> = ({ recipe }) => {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { handleAddToCart } = useAddToCart();
   const { user } = useAuth();
-  // const { showToast } = useToast();
 
   const handleAddToCartClick = async (productId: number) => {
     if (isAddingToCart) return;
@@ -40,8 +35,7 @@ const Sidebar: React.FC<SidebarProps> = ({ recipe }) => {
         await handleAddToCart(1, product);
       }
     } catch (error) {
-      console.error('Error adding to cart:', error);
-      // Handle error state or feedback to the user
+      console.error("Error adding to cart:", error);
     } finally {
       setIsAddingToCart(false);
     }
@@ -50,90 +44,72 @@ const Sidebar: React.FC<SidebarProps> = ({ recipe }) => {
   return (
     <div className="lg:w-1/3">
       <div className="sticky top-4 space-y-8">
-
         <Reactions recipeId={recipe._id} />
 
-
-        <div className="bg-muted rounded-lg p-6">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                className="text-red-500 hover:text-red-600"
-              >
-                <Flag className="w-4 h-4 mr-2" />
-                Report
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Report Recipe</DialogTitle>
-              </DialogHeader>
-              <RadioGroup>
-                {['inappropriate', 'copyright', 'spam', 'other'].map((value) => (
-                  <div key={value} className="flex items-center space-x-2">
-                    <RadioGroupItem value={value} id={value} />
-                    <Label htmlFor={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</Label>
-                  </div>
-                ))}
-              </RadioGroup>
-              <Button type="submit" className="mt-4">
-                Submit Report
-              </Button>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <ReportDialog recipe={recipe} />
 
         <div className="bg-muted rounded-lg p-6">
           <h3 className="text-2xl font-bold mb-4">Ingredients</h3>
           <ul className="space-y-2">
-
             {recipe.ingredients.map((ingredient) => (
-              <li key={ingredient._id} className="flex items-center justify-between gap-2 group">
+              <li
+                key={ingredient._id}
+                className="flex items-center justify-between gap-2 group"
+              >
                 <div className="flex items-center gap-2">
                   <CheckIcon className="w-5 h-5 text-primary" />
-                  <span>{ingredient.name} - {ingredient.quantity}</span>
+                  <span>
+                    {ingredient.name} - {ingredient.quantity}
+                  </span>
                 </div>
                 {ingredient.productId && (
                   <div className="flex items-center gap-2 transition-opacity duration-300">
-
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => handleAddToCartClick(ingredient.productId!)}
+                      onClick={() =>
+                        handleAddToCartClick(ingredient.productId!)
+                      }
                       disabled={isAddingToCart}
-                      className='p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800'
+                      className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800"
                     >
                       <PlusIcon className="w-4 h-4" />
                     </Button>
                     <Link href={`/product/${ingredient.productId}`} passHref>
-                      <Button size="icon" variant="ghost" className='p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800'>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800"
+                      >
                         <ExternalLink className="w-4 h-4" />
                       </Button>
                     </Link>
                   </div>
                 )}
-
               </li>
             ))}
           </ul>
         </div>
 
         <div className="space-y-4">
-          {
-            user && (
-              <FavoriteButton
-                recipeId={recipe._id}
-                userId={user.id}
-                className="w-full"
-                iconClassName="w-5 h-5 mr-2"
-                showLabel
-                saveLabel='Save Recipe'
-                savedLabel='Saved'
-                onToggle={(isFavorited) => console.log(`Recipe ${isFavorited ? 'saved to' : 'removed from'} favorites`)}
-              />
-            )
-          }
+          {user && (
+            <FavoriteButton
+              recipeId={recipe._id}
+              userId={user.id}
+              className="w-full"
+              iconClassName="w-5 h-5 mr-2"
+              showLabel
+              saveLabel="Save Recipe"
+              savedLabel="Saved"
+              onToggle={(isFavorited) =>
+                console.log(
+                  `Recipe ${
+                    isFavorited ? "saved to" : "removed from"
+                  } favorites`
+                )
+              }
+            />
+          )}
           <Button variant="outline" className="w-full">
             <ShareIcon className="w-5 h-5 mr-2" />
             Share Recipe

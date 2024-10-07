@@ -1,5 +1,5 @@
 import { MongoDataSource } from "@/config/db.config.ts";
-import { Recipe, RecipeComment, RecipeReaction, RecipeTag } from "@/entity/recipe.entity.ts";
+import { Recipe, RecipeComment, RecipeReaction, RecipeReport, RecipeTag } from "@/entity/recipe.entity.ts";
 import UserService from "@/service/user.service";
 import { Step } from "@/entity/recipeStep.entity.ts";
 import { Ingredient } from "@/entity/ingredient.entity.ts";
@@ -13,6 +13,8 @@ import { Favorite } from "@/entity/favourite.entity";
 import handleError from "@/util/handleError";
 import { FavoriteService } from './favourite.service';
 import { In } from "typeorm";
+import { log } from "console";
+import { ObjectIdLike } from "bson";
 
 export default class RecipeService {
   private recipeRepository = MongoDataSource.getRepository(Recipe);
@@ -21,6 +23,7 @@ export default class RecipeService {
   private recipeTagRepository = MongoDataSource.getRepository(RecipeTag);
   private recipeCommentRepository = MongoDataSource.getRepository(RecipeComment);
   private reacipeReactionRepository = MongoDataSource.getRepository(RecipeReaction);
+  private recipeReportRepository = MongoDataSource.getRepository(RecipeReport);
   private UserService = new UserService();
   private favoriteService = new FavoriteService();
 
@@ -56,9 +59,9 @@ export default class RecipeService {
       },
     };
     isPublic && (query.isPublished = isPublic);
+    query.isActivate = true;
     skip && (options.skip = skip);
     take && (options.take = take);
-    // query.isActivate = true;
     const [recipes, total] = await this.recipeRepository.findAndCount({
       where: query,
       ...options,
@@ -66,7 +69,7 @@ export default class RecipeService {
     const recipeDetails = await Promise.all(
       recipes.map(async (recipe: Recipe) => {
         const steps = await this.stepRepository.find({
-          where: {
+          where: { 
             _id: { $in: recipe.steps },
           },
         } as any);
@@ -342,6 +345,10 @@ export default class RecipeService {
 
     if (!recipe) {
       throw new Error("Recipe not found");
+    }
+
+    if (!recipe.isActivate) {
+      throw new Error("Recipe is not active");
     }
 
     const steps = await this.stepRepository.find({
@@ -684,29 +691,29 @@ export default class RecipeService {
     };
   }
 
-  async getRecipeWithUser(recipe : Recipe) {
+  async getRecipeWithUser(recipe: Recipe) {
     const { userId, ...recipeWithoutUserId } = recipe;
     const user = await this.UserService.findUserById(userId!);
     if (user) {
-        return {
-            ...recipeWithoutUserId,
-            user: {
-                id: user.id,
-                username: user.username,
-                avatar: user.avatar,
-            },
-        };
+      return {
+        ...recipeWithoutUserId,
+        user: {
+          id: user.id,
+          username: user.username,
+          avatar: user.avatar,
+        },
+      };
     } else {
-        return {
-            ...recipeWithoutUserId,
-            user: {
-                id: undefined,
-                username: undefined,
-                avatar: undefined,
-            },
-        };
+      return {
+        ...recipeWithoutUserId,
+        user: {
+          id: undefined,
+          username: undefined,
+          avatar: undefined,
+        },
+      };
     }
-}
+  }
 
   async getRecipesWithUserId(userid?: string) {
 
@@ -724,7 +731,7 @@ export default class RecipeService {
     });
     const recipeWithUser = await Promise.all(
       recipes.map(recipe => this.getRecipeWithUser(recipe))
-  );
+    );
     return recipeWithUser;
   }
 
@@ -734,7 +741,7 @@ export default class RecipeService {
       if (!favoritesIds || favoritesIds.length === 0) {
         return [];
       }
-      const options =  { 
+      const options = {
         where: {
           _id: { $in: favoritesIds.map(id => new ObjectId(id)) },
         } as any
@@ -743,15 +750,15 @@ export default class RecipeService {
       const recipes = await this.recipeRepository.find(
         options
       );
-  
+
       console.log('recipes', recipes);
       console.log('favoritesIds', favoritesIds);
-  
+
       // Optionally, you can add user information to each recipe
       const recipesWithUser = await Promise.all(
         recipes.map(async (recipe) => this.getRecipeWithUser(recipe))
       );
-  
+
       return recipesWithUser;
     } catch (error) {
       console.error("Error getting user favorites:", error);
@@ -759,7 +766,121 @@ export default class RecipeService {
       return []; // Return an empty array in case of error
     }
   }
-  
 
 
+  async reportRecipe(recipeId: string, userId: string, report: string) {
+    try {
+
+      const recipe = await this.recipeRepository.findOne({
+        where: { _id: new ObjectId(recipeId) },
+      });
+
+      const user = await this.UserService.findUserById(userId);
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      if (!recipe) {
+        throw new Error('Recipe not found');
+      }
+
+      const existingReport = await this.recipeReportRepository.findOne({
+        where: { recipeId: new ObjectId(recipeId), userId },
+      });
+
+      const reportRecipe = new RecipeReport();
+      reportRecipe.recipeId = new ObjectId(recipeId);
+      reportRecipe.userId = userId;
+      reportRecipe.report = report;
+
+      if (existingReport) {
+        throw new Error('You have already reported this recipe');
+      }
+
+      await this.recipeReportRepository.save(reportRecipe);
+
+      return reportRecipe;
+    } catch (error) {
+      handleError(error as Error, "Error reporting recipe");
+    }
+  }
+
+  async getAllReportedRecipes() {
+    try {
+      const reportAggregation = await this.recipeReportRepository.aggregate([
+        {
+          $group: {
+            _id: "$recipeId",  // Group by recipeId
+            reportCount: { $sum: 1 }, // Count the number of reports
+          },
+        },
+      ]).toArray();
+
+      const recipeIds = reportAggregation.map(report => new ObjectId(report._id));
+
+      console.log('recipeIds:', recipeIds);
+
+      const recipes = await this.recipeRepository.find({
+        where: {
+          _id: { $in: recipeIds },
+          isActivate: true,
+        },
+      });
+
+      console.log('found recipes:', recipes);
+
+      // Map reports and recipes to create the final output
+      const reportsWithTitles = reportAggregation
+        .map(report => {
+          const recipe = recipes.find(r => r._id.equals(new ObjectId(report._id)));
+          if (recipe) {
+            return {
+              recipeId: report._id,
+              title: recipe.title,
+              reportCount: report.reportCount,
+            };
+          }
+          return null;
+        })
+        .filter(report => report !== null); // Remove null entries (blocked recipes)
+
+      return reportsWithTitles;
+    } catch (error) {
+      handleError(error as Error, "Error getting reported recipes");
+      throw new Error("Error fetching reported recipes");
+    }
+  }
+
+  async getReportByRecipeId(recipeId: string) {
+    try {
+      const report = await this.recipeReportRepository.findOne({
+        where: { recipeId: new ObjectId(recipeId) },
+      });
+      return report;
+    } catch (error) {
+      handleError(error as Error, "Error getting report by recipe id");
+    }
+  }
+
+  async blockRecipe(recipeId: string) {
+    try {
+      const recipe = await this.recipeRepository.findOne({
+        where: { _id: new ObjectId(recipeId) },
+      });
+
+      if (recipe) {
+        recipe.isActivate = false;
+        recipe.isPublished = false;
+        await this.recipeRepository.update(new ObjectId(recipeId), { isActivate: false });
+        await this.recipeReportRepository.delete({ recipeId: new ObjectId(recipeId) });
+      } else {
+        throw new Error("Recipe not found");
+      }
+
+      return recipe;
+    } catch (error) {
+      handleError(error as Error, "Error blocking recipe");
+    }
+  }
 }
