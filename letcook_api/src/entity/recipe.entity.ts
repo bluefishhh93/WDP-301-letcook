@@ -151,3 +151,23 @@ export class RecipeReaction extends BaseEntity {
   @IsBoolean()
   isCookpot: boolean = false;
 }
+
+@Entity("recipeReport")
+export class RecipeReport extends BaseEntity {
+  @ObjectIdColumn()
+  _id!: ObjectId;
+
+  @Column("text")
+  @IsString()
+  userId!: string;
+
+  @Column(() => ObjectId)
+  @IsMongoId()
+  recipeId!: ObjectId;
+
+  @Column("text")
+  @IsString()
+  report!: string;
+
+
+}

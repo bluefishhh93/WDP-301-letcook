@@ -7,7 +7,8 @@ import {
   Tag,
   Users,
   ShoppingBasket,
-  CookingPot
+  CookingPot,
+  BarChart2 // Add this import
 } from 'lucide-react';
 
 type Submenu = {
@@ -102,6 +103,13 @@ export function getMenuList(pathname: string): Group[] {
           label: 'Post',
           active: pathname.includes('/admin/post'),
           icon: Edit,
+          submenus: [],
+        },
+        {
+          href: '/admin/report',
+          label: 'Report',
+          active: pathname.includes('/admin/report'),
+          icon: BarChart2,
           submenus: [],
         },
       ],
