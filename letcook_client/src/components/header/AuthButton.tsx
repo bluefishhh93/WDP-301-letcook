@@ -34,7 +34,7 @@ interface UserAvatarProps {
 export default function AuthButton() {
   const { data: session, status } = useSession();
   // const { profile, isLoading } = useProfile(session?.user?.id || '');
-  const { avatarUrl } = useAvatar();
+  // const { avatarUrl } = useAvatar();
   const [profile, setProfile] = useState<any>(null);
   
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function AuthButton() {
       setProfile(data);
     };
     fetchProfileData();
-  }, [session, profile]);
+  }, [session, status]);
 
   const handleGoogleLogin = async () => {
     await signIn('google');

@@ -7,8 +7,8 @@ const upload = multer({ dest: "uploads/" });
 const recipeController = new RecipeController();
 
 // General recipe routes
-router.get("/recipe/all", recipeController.getAll);
 router.get("/recipe", recipeController.getRecipe);
+router.get("/recipe/all", recipeController.getAll);
 router.post("/recipe", upload.any(), recipeController.createNewRecipe);
 
 // Recipe reports
