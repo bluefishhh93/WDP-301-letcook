@@ -20,7 +20,9 @@ import Notification from '../Notification';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import Link from 'next/link';
-import useProfile from '@/hooks/useProfile';
+import React, { useEffect, useState } from 'react';
+import { useAvatar } from '@/context/avatar-context';
+import { fetchProfile } from '@/services/user.service';
 interface LoginFormProps {
   handleGoogleLogin: () => void;
 }
@@ -31,7 +33,18 @@ interface UserAvatarProps {
 }
 export default function AuthButton() {
   const { data: session, status } = useSession();
-  const {profile , isLoading} = useProfile(session?.user.id!);
+  // const { profile, isLoading } = useProfile(session?.user?.id || '');
+  const { avatarUrl } = useAvatar();
+  const [profile, setProfile] = useState<any>(null);
+  
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      const data = await fetchProfile(session?.user?.id || '');
+      setProfile(data);
+    };
+    fetchProfileData();
+  }, [session, profile]);
+
   const handleGoogleLogin = async () => {
     await signIn('google');
   };
@@ -43,7 +56,7 @@ export default function AuthButton() {
       {session?.user ? (
         <UserAvatar
           username={session.user.username}
-          avatar={profile?.avatar!}
+          avatar={profile?.avatar || ''}
           handleLogout={handleLogout}
         />
       ) : (
@@ -52,7 +65,6 @@ export default function AuthButton() {
     </>
   );
 }
-
 export function LoginForm({ handleGoogleLogin }: LoginFormProps) {
   const { isOpen, setIsOpen } = useAuthFormToggle();
   return (

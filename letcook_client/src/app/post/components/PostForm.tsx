@@ -15,10 +15,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import dynamic from 'next/dynamic';
-import useUploadFile from '@/hooks/useUploadFile';
 import { toast } from 'react-toastify';
 import axios from '@/lib/axios';
 import { User, UserInfo } from 'CustomTypes';
+import { ImageUploader } from '@/utils/image-upload';
 
 const Editor = dynamic(() => import('@/components/Editor'), { ssr: false });
 
@@ -34,15 +34,15 @@ interface FormPostProps {
 }
 
 export default function FormPost({ user }: FormPostProps) {
-  const { InputFile, filePath } = useUploadFile('post');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
 
   const form = useForm<FormValues>({
     defaultValues: {
       title: '',
       content: '',
       userId: '',
-      image: filePath,
+      image: '',
     },
   });
 
@@ -50,10 +50,12 @@ export default function FormPost({ user }: FormPostProps) {
     setIsSubmitting(true);
     try {
       data.userId = user.id;
+      data.image = imageUrl;
       const res = await axios.post('/api/post', data);
       if (res.status === 201) {
         toast.success('Post successfully added');
         form.reset();
+        setImageUrl('');
       }
     } catch (error) {
       toast.error('Error adding post');
@@ -61,13 +63,17 @@ export default function FormPost({ user }: FormPostProps) {
       setIsSubmitting(false);
     }
   };
-  // const Editor = dynamic(() => import('@/components/Editor'), { ssr: false });
+
+  const handleImageUploadSuccess = (url: string) => {
+    setImageUrl(url);
+    form.setValue('image', url);
+  };
+
   return (
     <Form {...form}>
       <form
         className="flex flex-col space-y-5 overflow-y-auto"
         onSubmit={form.handleSubmit(onSubmit)}
-        encType="multipart/form-data"
       >
         <FormField
           control={form.control}
@@ -90,11 +96,15 @@ export default function FormPost({ user }: FormPostProps) {
             <FormItem>
               <FormLabel>Image</FormLabel>
               <FormControl>
-                <InputFile
-                  onChange={(filePath: string) => {
-                    field.onChange(filePath);
-                  }}
-                />
+                <div>
+                  <ImageUploader
+                    onUploadSuccess={handleImageUploadSuccess}
+                    folder="post_images"
+                  />
+                  {imageUrl && (
+                    <img src={imageUrl} alt="Uploaded" className="mt-2 max-w-xs" />
+                  )}
+                </div>
               </FormControl>
               <FormDescription>This is your post thumbnail.</FormDescription>
               <FormMessage />
@@ -108,11 +118,6 @@ export default function FormPost({ user }: FormPostProps) {
             <FormItem>
               <FormLabel>Content</FormLabel>
               <FormControl>
-                {/* <Textarea
-                  {...field}
-                  placeholder="content"
-                  className="resize-y h-max-80 overflow-auto h-60"
-                /> */}
                 <div className="h-100">
                   <Editor value={field.value} onChange={field.onChange} />
                 </div>
@@ -122,7 +127,9 @@ export default function FormPost({ user }: FormPostProps) {
         />
         <div className="pt-7"></div>
         <Separator />
-        <Button type="submit">Submit</Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Submitting...' : 'Submit'}
+        </Button>
       </form>
     </Form>
   );
