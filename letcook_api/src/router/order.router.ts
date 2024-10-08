@@ -1,4 +1,4 @@
-import { NextFunction, Router } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 import OrderController from "@/controller/order.controller";
 import { Logger } from "@/util/logger";
 import { resolveIndexId } from "@/middleware";
@@ -29,8 +29,12 @@ router.post("/orders", (req, res, next: NextFunction) => {
 });
 
 
-router.put("/orders/:id/status",resolveIndexId ,(req, res, next: NextFunction) => {
+router.put("/orders/:id/status",resolveIndexId ,(req: Request, res: Response, next: NextFunction) => {
   orderController.updateOrderStatus(req, res, next);
+});
+
+router.put("/orders/:id/payment-status",resolveIndexId ,(req: Request, res: Response, next: NextFunction) => {
+  orderController.updatePaymentStatus(req, res, next);
 });
 // router.put("/orders/:id/cancel",resolveIndexId ,(req, res, next: NextFunction) => {
 //   orderController.updateOrderStatus(req, res, next);

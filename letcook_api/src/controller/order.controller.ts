@@ -105,6 +105,25 @@ export default class OrderController extends BaseController<Order> {
     }
   }
 
+  async updatePaymentStatus(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    const orderId = req.params.id;
+    const { paymentStatus } = req.body;
+    try {
+      const order = await this.orderService.updatePaymentStatus(
+        parseInt(orderId),
+        paymentStatus
+      );
+      res.status(200).json(this.transformOrderData(order));
+    } catch (error) {
+      Logger.error("Failed to update payment status", error);
+      next(error);
+    }
+  }
+
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const entities = await this.orderService.getAll();

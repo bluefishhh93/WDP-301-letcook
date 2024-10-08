@@ -184,6 +184,26 @@ export class OrderService extends BaseService<Order> {
     }
   }
 
+  async updatePaymentStatus(orderId: number, paymentStatus: string) {
+    const PAYMENT_STATUS = ['pending', 'paid', 'failed', 'refunded'];
+
+    if(!PAYMENT_STATUS.includes(paymentStatus)){
+      throw new Error('Invalid payment status');
+    }
+
+    
+
+    const order = await this.repository.findOneBy({id: orderId})
+    ;
+    if(!order){
+      throw new Error('Order not found');
+    }
+    order.paymentStatus = paymentStatus;
+    await order.save();
+
+    return order;
+  }
+
   async updateOrderStatus(orderId: number, status: string, reason?: string) {
     const ALLOWED_STATUSES = [
       "shipping",

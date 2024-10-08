@@ -45,7 +45,7 @@ const Instructions: React.FC<InstructionsProps> = ({ steps }) => {
         <ChefHat className="w-8 h-8 text-green-500" />
         <h2 className="text-2xl font-bold mb-6">Instructions</h2>
       </div>
-      <div className="space-y-8">
+      <div className="space-y-8 bg-white p-4 rounded-lg dark:bg-slate-800">
         {steps.map((step, index) => (
           <div key={step._id} className="flex flex-col gap-3">
             <div className="flex flex-col gap-4">

@@ -33,7 +33,7 @@ const RecipePage: React.FC<RecipePageProps> = ({ params }) => {
           return;
         }
         setRecipe(recipeData);
-      } catch (error) {
+      } catch (error: any) {
         setError(error.response.data.error);
       }
     };
@@ -47,8 +47,7 @@ const RecipePage: React.FC<RecipePageProps> = ({ params }) => {
   }
 
   return (
-    <div className="bg-background text-foreground">
-      <div className="container mx-auto px-4 py-12">
+    <div className="bg-[#f8f6f2] text-foreground container mx-auto px-4 sm:px-20 py-12 dark:bg-[#1f1f1f]">
         <HeroSection recipe={recipe} />
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -67,7 +66,6 @@ const RecipePage: React.FC<RecipePageProps> = ({ params }) => {
           comments={(recipe as any).commentWithUser}
           recipeId={recipe._id}
         />
-      </div>
       <Cart />
     </div>
   );

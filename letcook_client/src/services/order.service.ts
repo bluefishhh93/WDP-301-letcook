@@ -72,6 +72,21 @@ export const updateOrderStatus = async (
   }
 };
 
+export const updatePaymentStatus = async (
+  orderId: number,
+  paymentStatus: string
+): Promise<OrderType> => {
+  try {
+    const response = await http.put(`${API_URL}/${orderId}/payment-status`, {
+      paymentStatus,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating payment status:", error);
+    throw error;
+  }
+};
+
 export const getOrderById = async (
   orderId: number
 ): Promise<OrderType | null> => {
