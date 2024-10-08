@@ -4,6 +4,7 @@ const API_URL = "https://dev-online-gateway.ghn.vn/shiip/public-api/master-data"
 const API_TOKEN = process.env.GHN_API_TOKEN;
 
 export async function GET(request: Request) {
+    console.log('haga');
     if (!API_TOKEN) {
         console.error("GHN_API_TOKEN is not set in environment variables");
         return NextResponse.json({ error: "API token is not configured" }, { status: 500 });

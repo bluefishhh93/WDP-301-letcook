@@ -108,7 +108,6 @@ export default class RecipeController {
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const recipes = await this.recipeService.getAll();
-      console.log(recipes)
       res.status(200).json(recipes);
     } catch (error) {
       next(error);
