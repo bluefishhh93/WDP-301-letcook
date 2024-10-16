@@ -20,7 +20,7 @@ import Notification from '../Notification';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAvatar } from '@/context/avatar-context';
 import { fetchProfile } from '@/services/user.service';
 interface LoginFormProps {
@@ -33,29 +33,47 @@ interface UserAvatarProps {
 }
 export default function AuthButton() {
   const { data: session, status } = useSession();
-  // const { profile, isLoading } = useProfile(session?.user?.id || '');
-  // const { avatarUrl } = useAvatar();
   const [profile, setProfile] = useState<any>(null);
-  
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchProfileData = useCallback(async () => {
+    if (session?.user?.accessToken && !profile) {
+      setIsLoading(true);
+      try {
+        const data = await fetchProfile(session.user.accessToken);
+        setProfile(data);
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [session, profile]);
+
   useEffect(() => {
-    const fetchProfileData = async () => {
-      const data = await fetchProfile(session?.user?.id || '');
-      setProfile(data);
-    };
-    fetchProfileData();
-  }, [session, status]);
+    if (status === 'authenticated') {
+      fetchProfileData();
+    }
+  }, [status, fetchProfileData]);
 
   const handleGoogleLogin = async () => {
     await signIn('google');
   };
+
   const handleLogout = async () => {
     await signOut();
+    setProfile(null);
   };
+
+  if (status === 'loading' || isLoading) {
+    return <Button variant="outline" disabled>Loading...</Button>;
+  }
+
   return (
     <>
       {session?.user ? (
         <UserAvatar
-          username={session.user.username}
+          username={session.user.username || 'User'}
           avatar={profile?.avatar || ''}
           handleLogout={handleLogout}
         />
@@ -65,6 +83,7 @@ export default function AuthButton() {
     </>
   );
 }
+
 export function LoginForm({ handleGoogleLogin }: LoginFormProps) {
   const { isOpen, setIsOpen } = useAuthFormToggle();
   return (

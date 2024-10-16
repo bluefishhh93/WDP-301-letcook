@@ -16,7 +16,7 @@ interface UseProfileResult {
     error: Error | null;
 }
 
-export default function useProfile(userId: string): UseProfileResult {
+export default function useProfile(token: string): UseProfileResult {
     const [profile, setProfile] = useState<ProfileType | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<Error | null>(null);
@@ -25,15 +25,15 @@ export default function useProfile(userId: string): UseProfileResult {
         let isMounted = true;
 
         const fetchUserProfile = async () => {
-            if (!userId) {
-                setError(new Error("User ID is required"));
+            if (!token) {
+                setError(new Error("Token is required"));
                 setIsLoading(false);
                 return;
             }
 
             try {
                 setIsLoading(true);
-                const data = await fetchProfile(userId);
+                const data = await fetchProfile(token);
                 if (isMounted) {
                     setProfile(data);
                     setError(null);
@@ -55,7 +55,7 @@ export default function useProfile(userId: string): UseProfileResult {
         return () => {
             isMounted = false;
         };
-    }, [userId]);
+    }, [token]);
 
     return { profile, isLoading, error };
 }

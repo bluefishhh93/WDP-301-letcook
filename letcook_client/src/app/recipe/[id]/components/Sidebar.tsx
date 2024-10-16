@@ -10,9 +10,15 @@ import Link from "next/link";
 import useAuth from "@/hooks/useAuth";
 import FavoriteButton from "@/components/ui.custom/user/FavouriteButton";
 import ReportDialog from "./ReportDialog";
+import NutritionAnalysis from "./nutrition-analysis";
 
 interface SidebarProps {
   recipe: Recipe;
+}
+
+interface Nutrient {
+  name: string;
+  quantity: string;
 }
 
 const toastConfig = {
@@ -47,7 +53,29 @@ const Sidebar: React.FC<SidebarProps> = ({ recipe }) => {
         <Reactions recipeId={recipe._id} />
 
         <ReportDialog recipe={recipe} />
-
+        <div className="space-y-4">
+          {user && (
+            <FavoriteButton
+              recipeId={recipe._id}
+              userId={user.id}
+              className="w-full"
+              iconClassName="w-5 h-5 mr-2"
+              showLabel
+              saveLabel="Save Recipe"
+              savedLabel="Saved"
+              onToggle={(isFavorited) =>
+                console.log(
+                  `Recipe ${isFavorited ? "saved to" : "removed from"
+                  } favorites`
+                )
+              }
+            />
+          )}
+          <Button variant="outline" className="w-full">
+            <ShareIcon className="w-5 h-5 mr-2" />
+            Share Recipe
+          </Button>
+        </div>
         <div className="bg-white rounded-lg p-6 dark:bg-slate-800">
           <h3 className="text-2xl font-bold mb-4">Ingredients</h3>
           <ul className="space-y-2">
@@ -91,30 +119,14 @@ const Sidebar: React.FC<SidebarProps> = ({ recipe }) => {
           </ul>
         </div>
 
-        <div className="space-y-4">
-          {user && (
-            <FavoriteButton
-              recipeId={recipe._id}
-              userId={user.id}
-              className="w-full"
-              iconClassName="w-5 h-5 mr-2"
-              showLabel
-              saveLabel="Save Recipe"
-              savedLabel="Saved"
-              onToggle={(isFavorited) =>
-                console.log(
-                  `Recipe ${
-                    isFavorited ? "saved to" : "removed from"
-                  } favorites`
-                )
-              }
-            />
-          )}
-          <Button variant="outline" className="w-full">
-            <ShareIcon className="w-5 h-5 mr-2" />
-            Share Recipe
-          </Button>
-        </div>
+        {/* <NutritionAnalysis data={
+          {
+            sugar: 25,
+            fat: 45,
+            protein: 60,
+          }
+        } /> */}
+        <NutritionAnalysis  />
       </div>
       <ToastContainer {...toastConfig} />
     </div>

@@ -3,6 +3,7 @@ import jwt, { JsonWebTokenError, JwtPayload } from 'jsonwebtoken';
 //env
 import { UserRole } from '@/@types/user.d';
 import env from '@/util/validateEnv';
+import { Logger } from '@/util/logger';
 
 const { TokenExpiredError } = jwt;
 
@@ -13,33 +14,35 @@ const catchError = (res: Response, error: JsonWebTokenError) => {
     return res.status(401).json({ message: 'Unauthorized: Invalid token' });
   }
 };
-// verìfy token
+
 const verifyToken = (
-  req: RequestWithUser,
+  req: Request,
   res: Response,
-  next: NextFunction,
-) => {
-  const token = req.headers['x-access-token'] as string;
-  console.log('Token:', token);
+  next: NextFunction
+): void => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  
   if (!token) {
-    return res.status(403).send({ message: 'No token provided!' });
+    Logger.warn('No token provided');
+    res.status(403).json({ message: 'No token provided' });
+    return;
   }
 
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
-
-    if (decoded && typeof decoded === 'object') {
-      req.user = { id: decoded.id, role: decoded.role };
-
-      next();
-    } else {
-      return res.status(401).send({ message: 'Invalid token!' });
-    }
+    Logger.info(`Token verified successfully for user ${decoded.id}`);
+    req.user = { id: decoded.id, role: decoded.role };
+    next();
   } catch (err) {
-    if (err instanceof JsonWebTokenError) {
-      return catchError(res, err);
+    if (err instanceof jwt.TokenExpiredError) {
+      Logger.warn(`Token expired for user ${(err as jwt.TokenExpiredError).expiredAt}`);
+      res.status(401).json({ message: 'Token expired' });
+    } else if (err instanceof jwt.JsonWebTokenError) {
+      Logger.warn(`Invalid token: ${err.message}`);
+      res.status(401).json({ message: 'Invalid token' });
     } else {
-      return res.status(500).send({ message: 'Internal server error!' });
+      Logger.error(`Failed to authenticate token: ${err}`);
+      res.status(500).json({ message: 'Failed to authenticate token' });
     }
   }
 };
@@ -105,4 +108,17 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
-export { authenticateJWT, isValidRole, requireAuth, verifyToken };
+const checkRole = (roles: string[]) => {
+  return (req: RequestWithUser, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(403).json({ message: 'No user found!' });
+    }
+    if (roles.includes(req.user.role)) {
+      next();
+    } else {
+      res.status(403).json({ message: 'Unauthorized: Insufficient role!' });
+    }
+  };
+};
+
+export { authenticateJWT, isValidRole, requireAuth, verifyToken, checkRole };

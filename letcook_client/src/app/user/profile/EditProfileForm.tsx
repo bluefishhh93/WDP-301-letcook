@@ -29,8 +29,8 @@ const userSchema = z.object({
 type FormValues = z.infer<typeof userSchema>;
 
 
-export default function EditProfileForm({ userId }: { userId: string }) {
-    const { profile, isLoading, error } = useProfile(userId);
+export default function EditProfileForm({ token }: { token: string }) {
+    const { profile, isLoading, error } = useProfile(token);
     const { setIsOpen: setIsOverlayOpen } = useContext(ToggleContext);
     const { toast } = useToast();
 
@@ -57,7 +57,7 @@ export default function EditProfileForm({ userId }: { userId: string }) {
 
     const onSubmit = async (data: FormValues) => {
         try {
-            const response = await updateUserProfile(userId, data);
+            const response = await updateUserProfile(token, data);
             toast({
                 title: "Profile updated",
                 description: "Your profile has been successfully updated.",

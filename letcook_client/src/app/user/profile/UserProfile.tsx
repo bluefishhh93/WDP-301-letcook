@@ -206,7 +206,7 @@ const UserProfile = () => {
                                 />
                             </form>
                         </Form>
-                        <EditProfileButton userId={user!.id} />
+                        <EditProfileButton token={user!.accessToken} />
                     </div>
                 </div>
             </div>

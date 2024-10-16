@@ -1,5 +1,6 @@
 // src/services/user.service.ts
 import http from "@/lib/axios";
+import { callApi } from "@/utils/callApi";
 
 
 
@@ -10,13 +11,14 @@ type UserProfile = {
     bio?: string | null;
     avatar?: string | null;
 };
-export const fetchProfile = async (userId: string) => {
-  const response = await http.get(`/api/user/${userId}`);
+
+export const fetchProfile = async (token: string) => {
+  const response = await callApi(`/api/user`, 'GET', null, token);
   return response.data;
 };
 
-export const updateUserProfile = async (userId: string, data: Partial<UserProfile>) => {
-  const response = await http.put(`/api/user/${userId}`, data);
+export const updateUserProfile = async (token: string, data: Partial<UserProfile>) => {
+  const response = await callApi(`/api/user`, 'PUT', data, token);
   return response.data;
 };
 

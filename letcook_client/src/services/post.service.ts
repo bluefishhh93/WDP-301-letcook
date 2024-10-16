@@ -2,7 +2,7 @@ import http from "@/lib/axios";
 import { Ingredient } from "CustomTypes";
 import { Recipe } from "CustomTypes";
 
-const API_URL = "/api/recipe";
+const API_URL = "/api/post";
 export const getPostWithUserId = async (userId: string) => {
 
     try {
