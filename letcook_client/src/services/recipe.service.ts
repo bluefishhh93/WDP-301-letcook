@@ -1,4 +1,5 @@
 import http from "@/lib/axios";
+import { callApi } from "@/utils/callApi";
 import exp from "constants";
 import { Ingredient } from "CustomTypes";
 import { Recipe } from "CustomTypes";
@@ -13,14 +14,11 @@ interface RecipeResponse {
 
 
 export const createRecipe = async (
-  recipeData: any
+  recipeData: any,
+  token: string
 ): Promise<RecipeResponse> => {
   try {
-    const res = await http.post(`${API_URL}`, recipeData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const res = await callApi(`${API_URL}`, 'POST', recipeData, token);
     return { status: res.status, data: res.data };
   } catch (error) {
     return { status: 500, data: null };
@@ -80,9 +78,9 @@ export const searchRecipes = async (query: string, ingredients: string[], skip: 
   }
 };
 
-export const getRecipesByUserId = async (userId: string) => {
+export const getRecipesByUserId = async (token: string) => {
   try {
-    const { data } = await http.get(`${API_URL}/user/${userId}`);
+    const { data } = await callApi(`${API_URL}/user`, 'GET', null, token);
     return data;
   } catch (error) {
     console.error("Error getting recipes by user ID:", error);
@@ -90,9 +88,9 @@ export const getRecipesByUserId = async (userId: string) => {
   }
 };
 
-export const getFavoriteRecipes = async (userId: string) => {
+export const getFavoriteRecipes = async (token: string) => {
   try {
-    const { data } = await http.get(`${API_URL}/favorite/${userId}`);
+    const { data } = await callApi(`${API_URL}/favorite`, 'GET', null, token);
     return data;
   } catch (error) {
     console.error("Error getting favorite recipes:", error);

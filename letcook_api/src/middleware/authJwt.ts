@@ -111,7 +111,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
 const checkRole = (roles: string[]) => {
   return (req: RequestWithUser, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return res.status(403).json({ message: 'No user found!' });
+      res.status(403).json({ message: 'No user found!' });
     }
     if (roles.includes(req.user.role)) {
       next();

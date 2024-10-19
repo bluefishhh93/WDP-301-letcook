@@ -9,6 +9,7 @@ export default class RecipeController {
   private recipeService = new RecipeService();
   createNewRecipe = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const { id } = req.user as { id: string };
       const body = req.body as Record<string, string>;
       const files = req.files as Express.Multer.File[];
 
@@ -42,7 +43,7 @@ export default class RecipeController {
       await Promise.all(stepImageUploadPromises);
 
       const recipe: CreateRecipeDTO = {
-        userId: body.userId,
+        userId: id,
         title: body.title,
         description: body.description,
         cook_time: parseInt(body.cookTime),
@@ -298,9 +299,9 @@ export default class RecipeController {
   }
 
   getRecipesWithUserId = async (req: Request, res: Response) => {
-    const { userId } = req.params;
+    const { id } = req.user as { id: string };
     try {
-      const recipes = await this.recipeService.getRecipesWithUserId(userId);
+      const recipes = await this.recipeService.getRecipesWithUserId(id);
       res.json(recipes);
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch posts', error });
@@ -308,9 +309,9 @@ export default class RecipeController {
   }
 
   getFavoriteRecipes = async (req: Request, res: Response) => {
-    const { userId } = req.params;
+    const { id } = req.user as { id: string };
     try {
-      const recipes = await this.recipeService.getFavoriteRecipes(userId);
+      const recipes = await this.recipeService.getFavoriteRecipes(id);
       res.json(recipes);
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch favorite recipes', error });

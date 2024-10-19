@@ -44,26 +44,28 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const UserProfile = () => {
-    const { user } = useAuth();
     const [posts, setPosts] = useState<PostType[]>([]);
     const [myRecipes, setMyRecipes] = useState<Recipe[]>([]);
     const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
     const [activeSection, setActiveSection] = useState<Section>('posts');
     const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
-    const { data: session, update } = useSession();
+    const { data: session, update, status } = useSession();
+    const [isLoading, setIsLoading] = useState(true);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const { profile } = useProfile(user?.id || '');
+    const user = session?.user;
+    const { profile, isLoading: isProfileLoading, error: profileError, refetch: refetchProfile } = useProfile();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
     });
 
-    const fetchData = useCallback(async (userId: string) => {
+    const fetchData = useCallback(async (token: string) => {
+        setIsLoading(true);
         try {
             const [postsRes, myRecipesRes, savedRecipesRes] = await Promise.all([
-                PostService.getPostWithUserId(userId),
-                RecipeService.getRecipesByUserId(userId),
-                RecipeService.getFavoriteRecipes(userId)
+                PostService.getPostWithUserId(token),
+                RecipeService.getRecipesByUserId(token),
+                RecipeService.getFavoriteRecipes(token)
             ]);
 
             setPosts(postsRes || []);
@@ -71,14 +73,17 @@ const UserProfile = () => {
             setSavedRecipes(savedRecipesRes || []);
         } catch (error) {
             console.error('Error fetching user data:', error);
+        } finally {
+            setIsLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        if (user?.id) {
-            fetchData(user.id);
+        if (status === 'authenticated' && user?.accessToken) {
+            fetchData(user.accessToken);
         }
-    }, [user?.id, fetchData]);
+    }, [status, user?.accessToken, fetchData]);
+
 
     const handleEditPost = (postId: string) => {
         // Implementation for editing post
