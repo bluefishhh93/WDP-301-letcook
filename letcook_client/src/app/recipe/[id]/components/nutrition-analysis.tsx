@@ -38,16 +38,16 @@ const ACTIVITY_LEVELS: Record<string, ActivityLevel> = {
     multiplier: 1.55,
     examples: "Chạy bộ, đạp xe, bơi lội định kỳ"
   },
-  // veryActive: {
-  //   label: "Hoạt động mạnh",
-  //   description: "Tập luyện cường độ cao 6-7 lần/tuần",
-  //   multiplier: 1.725,
-  //   examples: "Tập gym chuyên sâu, vận động viên nghiệp dư",
-  //   ageRestrictions: {
-  //     min: 16,
-  //     max: 60
-  //   }
-  // },
+  veryActive: {
+    label: "Hoạt động mạnh",
+    description: "Tập luyện cường độ cao 6-7 lần/tuần",
+    multiplier: 1.725,
+    examples: "Tập gym chuyên sâu, vận động viên nghiệp dư",
+    ageRestrictions: {
+      min: 16,
+      max: 60
+    }
+  },
   // extraActive: {
   //   label: "Vận động viên",
   //   description: "Tập luyện cường độ cao 2 lần/ngày",

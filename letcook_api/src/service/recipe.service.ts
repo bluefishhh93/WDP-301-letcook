@@ -12,9 +12,10 @@ import env from "@/util/validateEnv";
 import { Favorite } from "@/entity/favourite.entity";
 import handleError from "@/util/handleError";
 import { FavoriteService } from './favourite.service';
-import { In } from "typeorm";
+import { In, MongoRepository, ObjectLiteral } from "typeorm";
 import { log } from "console";
 import { ObjectIdLike } from "bson";
+import { formatMonthName, getMonthRange } from "@/util/date";
 
 export default class RecipeService {
   private recipeRepository = MongoDataSource.getRepository(Recipe);
@@ -910,6 +911,42 @@ export default class RecipeService {
       return recipe;
     } catch (error) {
       handleError(error as Error, "Error blocking recipe");
+    }
+  }
+
+  async countRecipesToCheck(): Promise<number> {
+    const [, count] = await this.recipeRepository.findAndCount({
+      where: { isActivate: false },
+    });
+    return count;
+  }
+
+  async countRecipesByMonth() {
+    try {
+      const currentDate = new Date();
+      const year = currentDate.getFullYear();
+      const recipeCounts = [];
+
+      for (let i = 4; i >= 0; i--) {
+        const { start, end } = getMonthRange(year, currentDate.getMonth() - i);
+        const count = await (this.recipeRepository as unknown as MongoRepository<ObjectLiteral>).count({
+            $expr: {
+            $and: [
+              { $gte: ["$createdAt", start] },
+              { $lte: ["$createdAt", end] },
+            ],
+          } as any,
+        });
+        recipeCounts.push(count);
+      }
+
+      const data = recipeCounts.map((count, index) => ({
+        month: formatMonthName(currentDate.getMonth() - 4 + index),
+        recipes: count,
+      }));
+      return data;
+    } catch (error) {
+      throw new Error("Failed to get recipe data");
     }
   }
 }

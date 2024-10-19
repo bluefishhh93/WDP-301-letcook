@@ -26,7 +26,7 @@ import { Package2, Phone, Mail, MapPin, CreditCard, AlertCircle } from "lucide-r
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { vietnamCurrency } from "@/utils/commons.utils";
-import { updatePaymentStatus } from "@/services/order.service";
+import { updateOrderStatus } from "@/services/order.service";
 
 interface ViewOrderDialogProps {
   selectedOrder: OrderType;
@@ -35,10 +35,15 @@ interface ViewOrderDialogProps {
 const ViewOrderDialog: React.FC<ViewOrderDialogProps> = ({ selectedOrder }) => {
   const [open, setOpen] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState(selectedOrder.paymentStatus);
-
+  const [shippingStatus, setShippingStatus] = useState(selectedOrder.shippingStatus);
   const handlePaymentStatusChange = async (status: string) => {
     setPaymentStatus(status);
-    const res = await updatePaymentStatus(selectedOrder.id, status);
+    const res = await updateOrderStatus(selectedOrder.id, status, 'paymentStatus');
+  };
+
+  const handleShippingStatusChange = async (status: string) => {
+    setShippingStatus(status);
+    const res = await updateOrderStatus(selectedOrder.id, status, 'shippingStatus');
   };
 
   const getStatusColor = (status: string) => {
@@ -132,6 +137,27 @@ const ViewOrderDialog: React.FC<ViewOrderDialogProps> = ({ selectedOrder }) => {
                             key={status}
                             value={status}
                             className={`capitalize text-xs py-1 ${getPaymentStatusColor(status)} my-0.5 rounded-sm`}
+                          >
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col space-y-1">
+                    <Label htmlFor="shippingStatus" className="text-xs font-medium text-gray-500">
+                      Shipping Status
+                    </Label>
+                    <Select value={shippingStatus} onValueChange={handleShippingStatusChange}>
+                      <SelectTrigger id="shippingStatus" className="w-full h-8 text-sm border-gray-200 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border border-gray-200 rounded-md shadow-lg">
+                        {['shipping', 'pending', 'cancelled', 'completed'].map((status) => (
+                          <SelectItem
+                            key={status}
+                            value={status}
+                            className={`capitalize text-xs py-1 ${getStatusColor(status)} my-0.5 rounded-sm`}
                           >
                             {status}
                           </SelectItem>

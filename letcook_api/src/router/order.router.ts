@@ -29,12 +29,9 @@ router.post("/orders", (req, res, next: NextFunction) => {
 });
 
 
-router.put("/orders/:id/status",resolveIndexId ,(req: Request, res: Response, next: NextFunction) => {
-  orderController.updateOrderStatus(req, res, next);
-});
-
-router.put("/orders/:id/payment-status",resolveIndexId ,(req: Request, res: Response, next: NextFunction) => {
-  orderController.updatePaymentStatus(req, res, next);
+//update order status
+router.put("/orders/:id/status", resolveIndexId, (req: Request, res: Response, next: NextFunction) => {
+  orderController.updateOrder(req, res, next);
 });
 // router.put("/orders/:id/cancel",resolveIndexId ,(req, res, next: NextFunction) => {
 //   orderController.updateOrderStatus(req, res, next);
