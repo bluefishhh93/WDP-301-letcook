@@ -1,15 +1,11 @@
-"use client";
-import React, { useEffect, useState } from "react";
 import { Recipe } from "CustomTypes";
 import HeroSection from "./components/HeroSection";
 import QuickFacts from "./components/QuickFacts";
 import Instructions from "./components/Instructions";
 import Sidebar from "./components/Sidebar";
-import { useRouter } from "next/navigation";
 import * as RecipeService from "@/services/recipe.service";
 import RecipeComment from "@/app/recipe/[id]/components/Comment";
 import Cart from "@/components/cart/Cart";
-import Loading from "./components/loading";
 import ErrorAccessDenied from "@/components/error/ErrorAccessDenied";
 
 interface RecipePageProps {
@@ -18,33 +14,31 @@ interface RecipePageProps {
   };
 }
 
-const RecipePage: React.FC<RecipePageProps> = ({ params }) => {
-  const delay = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
-  const [recipe, setRecipe] = useState<Recipe | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-  useEffect(() => {
-    const fetchRecipeData = async () => {
-      try {
-        const recipeData = await RecipeService.getRecipeById(params.id);
-        if (!recipeData) {
-          router.push("/404");
-          return;
-        }
-        setRecipe(recipeData);
-      } catch (error: any) {
-        setError(error.response.data.error);
-      }
-    };
-    fetchRecipeData();
-  }, [params.id, router]);
-  if (error) {
-    return <ErrorAccessDenied message={error} />;
-  }
+export interface RecipeAnalysis {
+  nutrition: {
+    calories: number;
+    protein: number;
+    fat: number;
+    carbs: number;
+  };
+  taste: {
+    sweet: number;
+    sour: number;
+    salty: number;
+    bitter: number;
+    savory: number;
+    fatty: number;
+  };
+}
+const RecipePage: React.FC<RecipePageProps> = async ({ params }) => {
+  const recipe = await RecipeService.getRecipeById(params.id);
+
   if (!recipe) {
-    return <Loading />;
+    return <ErrorAccessDenied message="Recipe not found" />;
   }
+
+  const analysis: RecipeAnalysis = await RecipeService.getRecipeAnalysis(recipe);
+
 
   return (
     <div className="bg-[#f8f6f2] text-foreground container mx-auto px-4 sm:px-20 py-12 dark:bg-[#1f1f1f]">
@@ -57,7 +51,7 @@ const RecipePage: React.FC<RecipePageProps> = ({ params }) => {
             {/* <CooksNotes /> */}
           </div>
 
-          <Sidebar recipe={recipe} />
+          <Sidebar recipe={recipe} analysis={analysis} />
         </div>
 
         {/* <RelatedRecipes /> */}

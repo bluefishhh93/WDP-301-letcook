@@ -497,7 +497,7 @@ const NutritionDashboard = () => {
               {[
                 { label: 'Calories', icon: <PieChart className="w-4 h-4" />, current: consumed.calories, target: targets.calories, unit: 'kcal', color: 'bg-primary' },
                 { label: 'Protein', icon: <Beef className="w-4 h-4" />, current: consumed.protein, target: targets.protein, unit: 'g', color: 'bg-red-500' },
-                { label: 'Chất béo', icon: <Pizza className="w-4 h-4" />, current: consumed.fat, target: targets.fat, unit: 'g', color: 'bg-yellow-500' },
+                { label: 'Fat ', icon: <Pizza className="w-4 h-4" />, current: consumed.fat, target: targets.fat, unit: 'g', color: 'bg-yellow-500' },
                 { label: 'Carbs', icon: <Cookie className="w-4 h-4" />, current: consumed.carbs, target: targets.carbs, unit: 'g', color: 'bg-brown-500' }
               ].map(({ label, icon, current, target, unit, color }) => (
                 <div key={label} className="space-y-1">

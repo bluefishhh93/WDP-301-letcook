@@ -13,7 +13,7 @@ const recipeController = new RecipeController();
 // General recipe routes
 router.get("/recipe", recipeController.getRecipe); //handle api key
 router.get("/recipe/all", recipeController.getAll); //handle api key
-router.post("/recipe", verifyToken, upload.any(), recipeController.createNewRecipe);
+router.post("/recipe", upload.any(), verifyToken, recipeController.createNewRecipe);
 
 
 // User-specific recipe routes
@@ -40,6 +40,7 @@ router.post("/recipe/tag/:recipeId", verifyToken, checkRole([UserRole.ADMIN]), r
 router
   .get("/recipe/:id", recipeController.getRecipeById)
   .put("/recipe/:id", verifyToken, checkRole([UserRole.ADMIN]), recipeController.updateRecipe);
+
 router.put("/recipe/:id/ingredients", verifyToken, checkRole([UserRole.ADMIN]), recipeController.updateRecipeIngredients);
 router.post("/recipe/:id/accept", verifyToken, checkRole([UserRole.ADMIN]), recipeController.acceptRecipe);
 router.post("/recipe/:id/reject", verifyToken, checkRole([UserRole.ADMIN]), recipeController.rejectRecipe);

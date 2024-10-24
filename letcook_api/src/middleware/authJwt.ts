@@ -30,7 +30,6 @@ const verifyToken = (
 
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
-    Logger.info(`Token verified successfully for user ${decoded.id}`);
     req.user = { id: decoded.id, role: decoded.role };
     next();
   } catch (err) {

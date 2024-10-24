@@ -12,7 +12,7 @@ export default function CheckoutPage() {
 
   return (
     <UserWrapper>
-      <main className="flex-1 py-8 px-4 md:px-8">
+      <main className="py-8 px-4 md:px-8">
         <div className="container mx-auto grid md:grid-cols-[2fr_1fr] gap-8">
           <div className="space-y-8">
             <CartSummary cart={cart} totalPrice={totalPrice} />

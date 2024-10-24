@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import { Step } from 'CustomTypes';
 import { ChefHat, X } from 'lucide-react';

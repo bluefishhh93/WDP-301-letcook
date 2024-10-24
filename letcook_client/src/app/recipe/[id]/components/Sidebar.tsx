@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { Recipe } from "CustomTypes";
 import { Button } from "@/components/ui/button";
@@ -11,9 +12,13 @@ import useAuth from "@/hooks/useAuth";
 import FavoriteButton from "@/components/ui.custom/user/FavouriteButton";
 import ReportDialog from "./ReportDialog";
 import NutritionAnalysis from "./nutrition-analysis";
+import NutritionTable from "./NutritionTable";
+import TasteAnalysis from "./taste-analysis";
+import { RecipeAnalysis } from "../page";
 
 interface SidebarProps {
   recipe: Recipe;
+  analysis: RecipeAnalysis;
 }
 
 interface Nutrient {
@@ -25,7 +30,7 @@ const toastConfig = {
   autoClose: 1000,
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ recipe }) => {
+const Sidebar: React.FC<SidebarProps> = ({ recipe, analysis }) => {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { handleAddToCart } = useAddToCart();
   const { user } = useAuth();
@@ -126,7 +131,24 @@ const Sidebar: React.FC<SidebarProps> = ({ recipe }) => {
             protein: 60,
           }
         } /> */}
-        <NutritionAnalysis  />
+        {analysis && (
+          <>
+            <NutritionTable
+              calories={analysis.nutrition.calories}
+              protein={analysis.nutrition.protein}
+              fat={analysis.nutrition.fat}
+              carbs={analysis.nutrition.carbs}
+            />
+            <TasteAnalysis data={[
+              { subject: "Sweet", value: analysis.taste.sweet, fullMark: 100 },
+              { subject: "Sour", value: analysis.taste.sour, fullMark: 100 },
+              { subject: "Salty", value: analysis.taste.salty, fullMark: 100 },
+              { subject: "Bitter", value: analysis.taste.bitter, fullMark: 100 },
+              { subject: "Savory", value: analysis.taste.savory, fullMark: 100 },
+              { subject: "Fatty", value: analysis.taste.fatty, fullMark: 100 }
+            ]} />
+          </>
+        )}
       </div>
       <ToastContainer {...toastConfig} />
     </div>
