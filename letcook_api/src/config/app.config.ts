@@ -7,8 +7,14 @@ import cors from "cors";
 import express from "express";
 import passport from "passport";
 import path from "path";
+import notificationRouter from "../router/notification.router";
 
 const app = express();
+
+app.use(express.json());
+
+// Sử dụng định tuyến cho thông báo
+app.use('/api', notificationRouter);
 
 app.use(
   cors({

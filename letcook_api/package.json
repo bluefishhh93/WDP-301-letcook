@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun --hot ./src/index.ts",
+    
     "typeorm": "typeorm-ts-node-commonjs"
   },
   "devDependencies": {

@@ -18,6 +18,9 @@ import Link from 'next/link';
 import { PostType } from 'Post';
 import { useEffect, useState } from 'react';
 
+
+import { useSession } from 'next-auth/react';
+
 export default function ListPost({
   tag,
   page,
@@ -107,12 +110,89 @@ export function PostSkeleton({ index }: any) {
     </div>
   );
 }
+
+interface UserType {
+  id: string;
+  username: string;
+  avatar: string;
+  email: string;
+}
 export function PostCard({ post }: { post: PostType }) {
+  const { data: session } = useSession();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const [followedUsers, setFollowedUsers] = useState<string[]>([]);
+
+  // Sử dụng useEffect để cập nhật userId khi session thay đổi
+  useEffect(() => {
+    if (session?.user.id) {
+      setUserId(session.user.id);
+      fetchFollowedUsers(session.user.id);
+    }
+  }, [session]);
+
+  // Hàm fetch danh sách người dùng đã được follow
+  const fetchFollowedUsers = async (userId: string) => {
+    try {
+      const response = await axios.get(`/api/users/following/${userId}`);
+      const followedUserIds = response.data.map((user: UserType) => user.id);
+      setFollowedUsers(followedUserIds);
+
+      // Kiểm tra xem người dùng của post hiện tại có nằm trong danh sách không
+      setIsFollowing(followedUserIds.includes(post.user.id));
+    } catch (error) {
+      console.error('Error fetching followed users:', error);
+    }
+  };
+
+
+  const handleFollow = async (e: React.MouseEvent<HTMLButtonElement>, authorId: string) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.put(`/api/users/following/${userId}`, {
+        followedUserId: authorId,
+      });
+
+      // Cập nhật trạng thái theo dõi sau khi nhận phản hồi từ API
+      if (isFollowing) {
+        // Nếu đang theo dõi, sau khi unfollow thì xóa authorId khỏi danh sách followedUsers
+        setFollowedUsers((prev) => prev.filter((id) => id !== authorId));
+      } else {
+        // Nếu chưa theo dõi, sau khi follow thì thêm authorId vào danh sách followedUsers
+        setFollowedUsers((prev) => [...prev, authorId]);
+      }
+      setIsFollowing(!isFollowing);
+    } catch (error) {
+      console.error('Error following/unfollowing user:', error);
+    }
+  };
+
+  const handleShare = async (e: React.MouseEvent<HTMLButtonElement>, postId: string) => {
+    e.preventDefault();
+
+    const postUrl = `${window.location.origin}/post/${postId}`;
+    try {
+      await navigator.clipboard.writeText(postUrl);
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Check out this post!',
+          text: 'Take a look at this amazing blog post!',
+          url: postUrl,
+        });
+      } else {
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`;
+        window.open(facebookUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      console.error('Error sharing post:', error);
+    }
+  };
+
   return (
     <Link
       href={`/post/${post._id}`}
       passHref
-      // prefetch={false}
       className="rounded-lg bg-white shadow-md transition-transform duration-300 hover:-translate-y-2 dark:bg-gray-800"
     >
       <div className="rounded-lg bg-white shadow-md transition-transform duration-300 hover:-translate-y-2 dark:bg-gray-800">
@@ -142,6 +222,24 @@ export function PostCard({ post }: { post: PostType }) {
             <span className="text-sm text-gray-500 dark:text-gray-400">
               {formatISODateToLongDate(post.createdAt)}
             </span>
+
+            {/* Chỉ hiển thị nút Follow nếu userId khác với post.user.id */}
+            {post.user.id !== userId && (
+              <button
+                onClick={(e) => handleFollow(e, post.user.id)}
+                className={`ml-2 px-4 py-2 text-sm font-medium text-white transition-colors duration-300 ${
+                  isFollowing ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+                }`}
+              >
+                {isFollowing ? 'Unfollow' : 'Follow'}
+              </button>
+            )}
+            <button
+              onClick={(e) => handleShare(e, post._id)}
+              className="ml-2 px-4 py-2 text-sm font-medium text-white transition-colors duration-300 bg-blue-500"
+            >
+              Share
+            </button>
           </div>
 
           <h3 className="mb-2 text-xl font-bold transition-colors duration-300 hover:text-primary-500 dark:hover:text-primary-400">
@@ -149,8 +247,7 @@ export function PostCard({ post }: { post: PostType }) {
           </h3>
 
           <p className="mb-4 text-gray-500 dark:text-gray-400">
-            Learn the essential steps to create a thriving blog and build a
-            loyal audience.
+            Learn the essential steps to create a thriving blog and build a loyal audience.
           </p>
           <Tags tags={post.tags} />
         </div>
@@ -158,6 +255,7 @@ export function PostCard({ post }: { post: PostType }) {
     </Link>
   );
 }
+
 
 export function BreadcrumbPost() {
   return (
