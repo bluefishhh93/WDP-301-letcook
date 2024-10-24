@@ -31,7 +31,7 @@ import { Favorite } from "@/entity/favourite.entity";
 // import env from '@/util/validateEnv';
 const MongoDataSource = new DataSource({
   type: "mongodb",
-  // url: `mongodb+srv://${env.MONGO_USER}:${env.MONGO_PASS}@${env.MONGO_HOST}/${env.MONGO_DB}?retryWrites=true&w=majority`,
+  // url: `mongodb://localhost:27017/api`,
   url: `${env.LOCAL_MONGO}`,
 
   // host: env.MONGO_HOST,
