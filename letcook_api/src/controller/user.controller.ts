@@ -33,6 +33,44 @@ export default class UserController {
       next(error);
     }
   };
+
+  getListUserFollowed = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.params.id; // ID của người dùng mà chúng ta cần lấy danh sách người đã theo dõi
+      const followedUsers = await this.userService.getListUserFollowed(userId);
+      res.status(200).json(followedUsers);
+    } catch (error) {
+      console.error('Error in getListUserFollowed:', error);
+      next(error);
+    }
+  };
+  
+  
+
+  addFollowedUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.params.id; // ID của người dùng hiện tại (người thực hiện follow)
+      const followedUserId = req.body.followedUserId; // ID của người dùng muốn theo dõi (nhận từ request body)
+
+      // Gọi hàm trong UserService để thực hiện thêm người dùng vào danh sách followedUsers
+      const updatedUser = await this.userService.addFollowedUser(userId, followedUserId);
+
+      res.status(200).json(updatedUser);
+    } catch (error) {
+      console.error('Error in addFollowedUser:', error);
+      next(error);
+    }
+  };
+    // Hàm getListUser mới thêm
+    getListUser = async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const users = await this.userService.getAllUsers();  // Gọi hàm từ service để lấy danh sách người dùng
+        res.json(users);
+      } catch (error) {
+        console.error('Error in getListUser:', error);
+        next(error);
+      }
+    };
 }
 
 export const userController = new UserController();
