@@ -86,19 +86,19 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    return res.status(401).json({ message: 'Unauthorized: No token provided' });
+     res.status(401).json({ message: 'Unauthorized: No token provided' });
   }
-  const parts = authHeader.split(' ');
+  const parts = authHeader!.split(' ');
   if (parts.length !== 2) {
-    return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+     res.status(401).json({ message: 'Unauthorized: Invalid token' });
   }
   const [scheme, token] = parts;
   if (!/^Bearer$/i.test(scheme)) {
-    return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+     res.status(401).json({ message: 'Unauthorized: Invalid token' });
   }
   jwt.verify(token, env.JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+       res.status(401).json({ message: 'Unauthorized: Invalid token' });
     }
     req.user = decoded;
     next();
