@@ -367,6 +367,7 @@ export default class RecipeService {
 
         //notify to followers
         const followers = await this.UserService.getListUserFollowed(recipe.userId!);
+        console.log("followers", followers);
         for (const follower of followers) {
           await notificationService.createNotification({
             userId: follower.id,

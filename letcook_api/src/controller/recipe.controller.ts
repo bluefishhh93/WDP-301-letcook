@@ -317,7 +317,7 @@ export default class RecipeController {
     }
   }
 
-  getFavoriteRecipes = async (req: Request, res: Response) => {
+    getFavoriteRecipes = async (req: Request, res: Response) => {
     const { id } = req.user as { id: string };
     try {
       const recipes = await this.recipeService.getFavoriteRecipes(id);

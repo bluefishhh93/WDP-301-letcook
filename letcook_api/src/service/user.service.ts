@@ -90,6 +90,9 @@ console.log('Received followedUserId:', followedUserId);
     }
   }
 
+
+  //get all user who follow user
+
 }
 
 export default UserService;
