@@ -16,4 +16,6 @@ export class Notification {
 
   @Column('text')
   userId?: string;
+  @Column({ nullable: true })
+  postId?: string; // Đảm bảo thêm postId vào entity và để tùy chọn nếu có thể
 }

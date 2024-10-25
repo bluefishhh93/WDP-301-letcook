@@ -32,3 +32,8 @@ export const uploadImageToCloudinary = async (file: File) => {
 
   return response.data.url;
 };
+export const getFollowingUsers = async (userId: string) => {
+  const response = await http.get(`/api/users/following/${userId}`);
+  return response.data;
+  
+};

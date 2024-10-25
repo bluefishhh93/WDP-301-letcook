@@ -22,8 +22,10 @@ import { signIn, useSession } from "next-auth/react";
 import { Upload } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import useProfile from "@/hooks/useProfile";
+import { User } from "../../../../../letcook_api/src/entity/user.entity";
 
-type Section = 'posts' | 'my-recipes' | 'saved-recipes';
+type Section = 'posts' | 'my-recipes' | 'saved-recipes' | 'following';
+
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -33,7 +35,7 @@ const formSchema = z.object({
         .custom<File>((v) => v instanceof File, {
             message: "Please upload a file",
         })
-        .refine((file) => file.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
+        .refine((file) => file.size <= MAX_FILE_SIZE, 'Max file size is 5MB.')
         .refine(
             (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
             'Only .jpg, .png, .webp and .gif formats are supported.'
@@ -47,6 +49,7 @@ const UserProfile = () => {
     const [posts, setPosts] = useState<PostType[]>([]);
     const [myRecipes, setMyRecipes] = useState<Recipe[]>([]);
     const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
+    const [followingUsers, setFollowingUsers] = useState<User[]>([]); // Thêm trạng thái cho following users
     const [activeSection, setActiveSection] = useState<Section>('posts');
     const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
     const { data: session, update, status } = useSession();
@@ -62,15 +65,17 @@ const UserProfile = () => {
     const fetchData = useCallback(async (token: string) => {
         setIsLoading(true);
         try {
-            const [postsRes, myRecipesRes, savedRecipesRes] = await Promise.all([
-                PostService.getPostWithUserId(token),
-                RecipeService.getRecipesByUserId(token),
-                RecipeService.getFavoriteRecipes(token)
+            const [postsRes, myRecipesRes, savedRecipesRes, followingRes] = await Promise.all([
+                PostService.getPostWithUserId(userId),
+                RecipeService.getRecipesByUserId(userId),
+                RecipeService.getFavoriteRecipes(userId),
+                UserService.getFollowingUsers(userId), // Lấy danh sách người theo dõi
             ]);
 
             setPosts(postsRes || []);
             setMyRecipes(myRecipesRes || []);
             setSavedRecipes(savedRecipesRes || []);
+            setFollowingUsers(followingRes || []); // Cập nhật danh sách người theo dõi
         } catch (error) {
             console.error('Error fetching user data:', error);
         } finally {
@@ -161,6 +166,31 @@ const UserProfile = () => {
                 return <MyRecipes recipes={myRecipes} onEdit={handleEditRecipe} onDelete={handleDeleteRecipe} />;
             case 'saved-recipes':
                 return <SavedRecipes recipes={savedRecipes} onDelete={handleRemoveFromSavedRecipes} onEdit={() => { }} />;
+            case 'following':
+                return (
+                    <div>
+                        <h3 className="text-lg font-semibold">Following Users</h3>
+                        <ul className="mt-2">
+    {followingUsers.map((follower) => (
+        <li key={follower.id} className="flex items-center gap-2">
+            <Avatar className="w-10 h-10">
+                <AvatarImage
+                    src={follower.avatar || ""}
+                    alt={follower.email || "User avatar"}
+                    className="rounded-full object-cover"
+                />
+                <AvatarFallback>
+                    {follower.email?.charAt(0).toUpperCase() || 'U'}
+                </AvatarFallback>
+            </Avatar>
+            <span>{follower.email || 'Unknown Email'}</span>
+        </li>
+    ))}
+</ul>
+                    </div>
+                );
+            default:
+                return null;
         }
     };
 
@@ -218,7 +248,7 @@ const UserProfile = () => {
             <div className="border-b">
                 <div className="flex justify-center">
                     <div className="flex gap-4 pt-4 text-sm font-medium">
-                        {(['posts', 'my-recipes', 'saved-recipes'] as Section[]).map((section) => (
+                        {(['posts', 'my-recipes', 'saved-recipes', 'following'] as Section[]).map((section) => (
                             <button
                                 key={section}
                                 className={`px-4 py-2 rounded-t-lg hover:bg-muted/50 transition-colors ${activeSection === section ? 'bg-muted/50' : ''}`}
