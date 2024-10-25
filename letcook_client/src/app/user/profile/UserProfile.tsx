@@ -46,44 +46,49 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const UserProfile = () => {
-    const { user } = useAuth();
     const [posts, setPosts] = useState<PostType[]>([]);
     const [myRecipes, setMyRecipes] = useState<Recipe[]>([]);
     const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
     const [followingUsers, setFollowingUsers] = useState<User[]>([]); // Thêm trạng thái cho following users
     const [activeSection, setActiveSection] = useState<Section>('posts');
     const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
-    const { data: session, update } = useSession();
+    const { data: session, update, status } = useSession();
+    const [isLoading, setIsLoading] = useState(true);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const { profile } = useProfile(user?.id || '');
-
+    const user = session?.user;
+    const { profile, isLoading: isProfileLoading, error: profileError, refetch: refetchProfile } = useProfile();
+    
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
     });
 
-    const fetchData = useCallback(async (userId: string) => {
+    const fetchData = useCallback(async (token: string) => {
+        setIsLoading(true);
         try {
             const [postsRes, myRecipesRes, savedRecipesRes, followingRes] = await Promise.all([
-                PostService.getPostWithUserId(userId),
-                RecipeService.getRecipesByUserId(userId),
-                RecipeService.getFavoriteRecipes(userId),
-                UserService.getFollowingUsers(userId), // Lấy danh sách người theo dõi
+                PostService.getPostWithUserId(user?.accessToken!),
+                RecipeService.getRecipesByUserId(user?.accessToken!),
+                RecipeService.getFavoriteRecipes(user?.accessToken!),
+                UserService.getFollowingUsers(user?.id!), // Lấy danh sách người theo dõi
             ]);
-
+            console.log(postsRes, myRecipesRes, savedRecipesRes, followingRes);
             setPosts(postsRes || []);
             setMyRecipes(myRecipesRes || []);
             setSavedRecipes(savedRecipesRes || []);
             setFollowingUsers(followingRes || []); // Cập nhật danh sách người theo dõi
         } catch (error) {
             console.error('Error fetching user data:', error);
+        } finally {
+            setIsLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        if (user?.id) {
-            fetchData(user.id);
+        if (status === 'authenticated' && user?.accessToken) {
+            fetchData(user.accessToken);
         }
-    }, [user?.id, fetchData]);
+    }, [status, user?.accessToken, fetchData]);
+
 
     const handleEditPost = (postId: string) => {
         // Implementation for editing post
@@ -236,7 +241,7 @@ const UserProfile = () => {
                                 />
                             </form>
                         </Form>
-                        <EditProfileButton userId={user!.id} />
+                        <EditProfileButton token={user!.accessToken} />
                     </div>
                 </div>
             </div>

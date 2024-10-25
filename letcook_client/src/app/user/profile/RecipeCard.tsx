@@ -19,8 +19,8 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onEdit, onDelete }) => 
             <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
                 <div className="relative aspect-video">
                     <Image
-                        width={100}
-                        height={100}
+                        width={300}
+                        height={300}
                         src={recipe.images[0] || "/placeholder-recipe.jpg"}
                         alt={recipe.title}
                         className="object-cover w-full h-full"

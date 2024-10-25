@@ -33,7 +33,7 @@ export const createColumns = (
       const handleUpdateOrderStatus = async (event: Event, status: string) => {
         event.preventDefault();
         try {
-          const updatedOrder = await updateOrderStatus(order.id, status);
+          const updatedOrder = await updateOrderStatus(order.id, status, 'status');
           handleUpdateSuccess(updatedOrder);
         } catch (error) {
           console.error(`Failed to update order status to ${status}:`, error);

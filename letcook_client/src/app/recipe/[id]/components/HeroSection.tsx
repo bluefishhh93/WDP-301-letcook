@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useEffect } from 'react';
 import { Recipe } from 'CustomTypes';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -86,7 +87,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ recipe }) => {
           />
         </div>
         <div className="md:w-2/3">
-          <h2 className="text-4xl font-mono mb-4">{recipe.title}</h2>
+          <h2 className="text-4xl font-serif mb-4">{recipe.title}</h2>
           <p className="text-lg text-gray-700 dark:text-gray-300">
             {recipe.description}
           </p>

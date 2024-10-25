@@ -18,7 +18,8 @@ export default class UserController {
 
   updateUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = await this.userService.updateUser(req.params.id, req.body);
+      const {id} = req.user as {id: string};
+      const user = await this.userService.updateUser(id, req.body);
       res.json(user);
     } catch (error) {
       next(error);
@@ -27,7 +28,8 @@ export default class UserController {
 
   getUserById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = await this.userService.findUserById(req.params.id);
+      const {id} = req.user as {id: string};
+      const user = await this.userService.findUserById(id);
       res.json(user);
     } catch (error) {
       next(error);
@@ -71,6 +73,18 @@ export default class UserController {
         next(error);
       }
     };
+
+    getListUserFollowers = async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const userId = req.params.id; // ID of the user whose followers we want to get
+        const followers = await this.userService.getListUserFollowers(userId);
+        res.status(200).json(followers);
+      } catch (error) {
+        console.error('Error in getListUserFollowers:', error);
+        next(error);
+      }
+    };
 }
+
 
 export const userController = new UserController();

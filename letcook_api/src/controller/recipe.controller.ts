@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, query, Request, Response } from "express";
 import RecipeService from "@/service/recipe.service.ts";
 import { CreateRecipeDTO } from "@/dto/create-recipe.dto";
 import { parseIngredients, parseSteps } from "@/util/recipe.util";
@@ -9,9 +9,11 @@ export default class RecipeController {
   private recipeService = new RecipeService();
   createNewRecipe = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const { id } = req.user as { id: string };
       const body = req.body as Record<string, string>;
       const files = req.files as Express.Multer.File[];
-
+      console.log(files, ' createNewRecipe');
+      console.log(body, ' createNewRecipe');
       const ingredients = parseIngredients(body);
       const steps = parseSteps(body);
 
@@ -42,7 +44,7 @@ export default class RecipeController {
       await Promise.all(stepImageUploadPromises);
 
       const recipe: CreateRecipeDTO = {
-        userId: body.userId,
+        userId: id,
         title: body.title,
         description: body.description,
         cook_time: parseInt(body.cookTime),
@@ -280,17 +282,25 @@ export default class RecipeController {
 
   searchRecipes = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const query = req.query.query as string;
+      const searchWords: string[] = Array.isArray(req.query.searchWords)
+        ? req.query.searchWords as string[]
+        : req.query.searchWords
+          ? [req.query.searchWords as string]
+          : [];
+
+
       const tags: string[] = [];
       const ingredients: string[] = Array.isArray(req.query.ingredients)
         ? req.query.ingredients as string[]
         : req.query.ingredients
           ? [req.query.ingredients as string]
           : [];
+
+
       const skip = req.query.skip ? parseInt(req.query.skip as string) : undefined;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
 
-      const recipes = await this.recipeService.searchRecipes(query, tags, ingredients, skip, limit);
+      const recipes = await this.recipeService.searchRecipes( searchWords, ingredients, skip, limit );
       res.status(200).json(recipes);
     } catch (error) {
       next(error);
@@ -298,19 +308,19 @@ export default class RecipeController {
   }
 
   getRecipesWithUserId = async (req: Request, res: Response) => {
-    const { userId } = req.params;
+    const { id } = req.user as { id: string };
     try {
-      const recipes = await this.recipeService.getRecipesWithUserId(userId);
+      const recipes = await this.recipeService.getRecipesWithUserId(id);
       res.json(recipes);
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch posts', error });
     }
   }
 
-  getFavoriteRecipes = async (req: Request, res: Response) => {
-    const { userId } = req.params;
+    getFavoriteRecipes = async (req: Request, res: Response) => {
+    const { id } = req.user as { id: string };
     try {
-      const recipes = await this.recipeService.getFavoriteRecipes(userId);
+      const recipes = await this.recipeService.getFavoriteRecipes(id);
       res.json(recipes);
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch favorite recipes', error });

@@ -58,10 +58,12 @@ export const rejectOrder = async (orderId: number) => {
 export const updateOrderStatus = async (
   orderId: number,
   status: string,
+  updateData: string,
   reason?: string
 ): Promise<OrderType> => {
   try {
     const response = await http.put(`${API_URL}/${orderId}/status`, {
+      updateData,
       status,
       reason,
     });
@@ -71,6 +73,7 @@ export const updateOrderStatus = async (
     throw error;
   }
 };
+
 
 export const getOrderById = async (
   orderId: number

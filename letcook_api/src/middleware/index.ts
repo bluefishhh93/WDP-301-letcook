@@ -1,19 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 
-export const resolveIndexId = (req: Request, res: Response, next: NextFunction) => {
+export const resolveIndexId = (req: Request, res: Response, next: NextFunction): void => {
   const { id } = req.params;
   if (!id || isNaN(Number(id))) {
-    return res.status(400).send({ error: "Invalid ID syntax. ID must be an integer." });
+    res.status(400).json({ error: "Invalid ID syntax. ID must be an integer." });
+  } else {
+    next();
   }
-  next();
 };
 
-// Middleware to check for body in GET request
-export const  checkForBodyInGetRequest=(req: Request, res: Response, next: NextFunction) =>{
+export const checkForBodyInGetRequest = (req: Request, res: Response, next: NextFunction): void => {
   if (req.method === 'GET' && Object.keys(req.body).length > 0) {
-    return res.status(405).json({ error: 'Sending a body with a GET request is not supported' });
+    res.status(405).json({ error: 'Sending a body with a GET request is not supported' });
+  } else {
+    next();
   }
-  next();
-}
-
-
+};

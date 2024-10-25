@@ -2,6 +2,7 @@ import http from "@/lib/axios";
 import { ReviewType } from "CustomTypes";
 
 
+
 export const createReview = async (reviewData: FormData): Promise<ReviewType | null> => {
   try {
     const response = await http.post('/api/review', reviewData, {
@@ -40,3 +41,5 @@ export const deleteReview = async (reviewId: number): Promise<void> => {
     console.error('Error deleting review:', error);
   }
 }
+
+

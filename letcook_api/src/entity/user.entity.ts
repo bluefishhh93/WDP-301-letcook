@@ -43,6 +43,18 @@ export class User {
   })
   role?: UserRole;
 
+  // //age
+  // @Column('int', { nullable: true })
+  // age?: number;
+
+  // //gender
+  // @Column('text', { nullable: true })
+  // gender?: string;
+
+  // //height
+  // @Column('int', { nullable: true })
+  // height?: number;
+
   @OneToOne(() => RefreshToken)
   @JoinColumn({ name: 'refreshTokenId' })
   refreshTokenEntity?: RefreshToken;

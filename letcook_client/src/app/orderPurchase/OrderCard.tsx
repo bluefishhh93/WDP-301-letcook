@@ -31,9 +31,9 @@ const OrderCard: React.FC<{
     try {
       let updatedOrder;
       if (order.paymentMethod === "cod") {
-        updatedOrder = await updateOrderStatus(order.id, "cancelled");
+        updatedOrder = await updateOrderStatus(order.id, "cancelled", 'status');
       } else if (order.paymentMethod === "vnpay") {
-        updatedOrder = await updateOrderStatus(order.id, "cancelling");
+        updatedOrder = await updateOrderStatus(order.id, "cancelling", 'status');
       }
 
       if (updatedOrder) {

@@ -35,7 +35,7 @@ const ReportDialog: React.FC<ReportDialogProps> = ({ recipe }) => {
         closeDialog();
         showToast("Your report has been submitted successfully!", "success");
       }
-    } catch (error) {
+    } catch (error: any) {
         const errorMessage = error.response?.message || "An error occurred while submitting your report.";
         showToast(errorMessage, "error");
     }
@@ -52,7 +52,7 @@ const ReportDialog: React.FC<ReportDialogProps> = ({ recipe }) => {
   };
 
   return (
-    <div className="bg-muted rounded-lg p-6">
+    <div className="bg-white rounded-lg p-6 dark:bg-slate-800">
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button variant="ghost" className="text-red-500 hover:text-red-600">

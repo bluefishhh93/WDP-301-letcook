@@ -4,7 +4,7 @@ import { InteractiveOverlay } from "@/components/interactive-overlay";
 import EditProfileForm from "./EditProfileForm";
 
 
-export default function EditProfileButton({ userId }: { userId: string }) {
+export default function EditProfileButton({ token }: { token: string }) {
     const [isOpen, setIsOpen] = useState(false);
 
 
@@ -15,7 +15,7 @@ export default function EditProfileButton({ userId }: { userId: string }) {
             setIsOpen={setIsOpen}
             title={""}
             description={""}
-            form={<EditProfileForm userId={userId} />}
+            form={<EditProfileForm token={token} />}
         />
         <Button onClick={() => setIsOpen(true)}>Edit Profile</Button>
        </>

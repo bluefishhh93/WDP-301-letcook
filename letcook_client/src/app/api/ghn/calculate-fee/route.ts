@@ -9,7 +9,6 @@ const GHN_SHOP_WARD_CODE = process.env.GHN_SHOP_WARD_CODE;
 export async function POST(request: Request) {
   try {
     const { to_district_id, to_ward_code, weight } = await request.json();
-    console.log('Received params:', { to_district_id, to_ward_code, weight });
 
     if (!to_district_id || !to_ward_code || !weight) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
@@ -31,7 +30,6 @@ export async function POST(request: Request) {
       coupon: null,
     };
 
-    console.log('Payload for GHN API:', payload);
 
     const response = await fetch(`${GHN_API_URL}shipping-order/fee`, {
       method: 'POST',

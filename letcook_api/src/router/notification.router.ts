@@ -20,7 +20,7 @@ router.get(
       : undefined;
     const { notifications, total } =
       await notificationService.getNotificationsByUserId(userId, skip, take);
-    return res.status(200).json(notifications);
+     res.status(200).json(notifications);
   },
 );
 export default router;
