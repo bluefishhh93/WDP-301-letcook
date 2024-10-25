@@ -1,11 +1,9 @@
 "use server"; 
 import http from "@/lib/axios";
 import { callApi } from "@/utils/callApi";
-import exp from "constants";
 import { Ingredient } from "CustomTypes";
 import { Recipe } from "CustomTypes";
 import OpenAI from "openai";
-import NodeCache from 'node-cache';
 import { revalidateTag, unstable_cache } from 'next/cache';
 
 
