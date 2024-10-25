@@ -541,117 +541,163 @@ export default class RecipeService {
 ],
   */
 
-  async searchRecipes(
-    query: string[],
-    //  tags: string[], 
-    ingredients: string[],
-    skip?: number,
-    take?: number): Promise<any> {
-    console.log("query", query);
-    const searchPatterns = query.map(q => new RegExp(`.*${q}.*`, 'i'));
-    const ingredientWords = ingredients.map(ingredient => ingredient.toLowerCase());
+async searchRecipes(
+  query: string[],
+  ingredients: string[], // list recipe search keyword
+  skip?: number,
+  take?: number
+): Promise<{ recipes: any[], total: number }> {
+  console.log("query", query);
+  console.log("ingredients", ingredients);
 
-    const searchQuery: any = {
+  // First get ingredient IDs for the query terms with case-insensitive and partial matching
+  const queryIngredientIds = await this.ingredientRepository.find({
+    where: {
       $or: query.map(q => ({
+        name: { $regex: `.*${this.escapeRegExp(q)}.*`, $options: 'i' }
+      }))
+    } as any
+  }).then(ingredients => ingredients.map(ingredient => ingredient._id));
+
+  // Build the search query for title, description, tags, and ingredients
+  const searchQuery = {
+    $or: [
+      ...query.map(q => ({
         $or: [
-          { title: { $regex: `.*${q}.*`, $options: 'i' } },
-          { description: { $regex: `.*${q}.*`, $options: 'i' } },
-          { 'ingredients.name': { $regex: `.*${q}.*`, $options: 'i' } },
-          { 'tags.name': { $regex: `.*${q}.*`, $options: 'i' } }
+          { title: { $regex: `.*${this.escapeRegExp(q)}.*`, $options: 'i' } },
+          { description: { $regex: `.*${this.escapeRegExp(q)}.*`, $options: 'i' } },
+          { 'tags.name': { $regex: `.*${this.escapeRegExp(q)}.*`, $options: 'i' } }
         ]
       })),
-      isPublished: true // Ensure only published recipes are returned
-    };
+      { ingredients: { $in: queryIngredientIds } }
+    ],
+    $and: [
+      { isActivate: true }
+    ]
+  };
 
-    // if (tags && tags.length > 0) {
-    //   searchQuery['tags.name'] = { $in: tags };
-    // }
+  console.log("searchQuery", searchQuery);
 
-    if (ingredients && ingredients.length > 0) {
-      searchQuery['ingredients.name'] = { $in: ingredients.map(ingredient => new RegExp(ingredient, 'i')) };
-    }
+  // Build the base query options
+  const options: any = {
+    where: searchQuery,
 
-    searchQuery['ingredients.name'] = { $in: query.map(q => new RegExp(q, 'i')) };
+  };
 
+  // Add pagination
+  if (skip !== undefined) options.skip = skip;
+  if (take !== undefined) options.take = take;
 
-    const options: any = {
-      where: searchQuery
-    };
+  // Get recipes and total count
+  const [recipesRaw, total] = await this.recipeRepository.findAndCount(options);
 
-    skip && (options.skip = skip);
-    take && (options.take = take);
+  // If ingredients are specified, filter recipes that contain all specified ingredients
+  let filteredRecipes = recipesRaw;
+  if (ingredients.length > 0) {
+    // Get ingredient IDs for the ingredient filter with case-insensitive and partial matching
+    const ingredientIds = await this.ingredientRepository.find({
+      where: {
+        $or: ingredients.map(ing => ({
+          name: { $regex: `.*${this.escapeRegExp(ing)}.*`, $options: 'i' }
+        }))
+      } as any
+    }).then(ingredients => ingredients.map(ingredient => ingredient._id));
 
-    const [recipes, total] = await this.recipeRepository.findAndCount(options);
-
-    // Calculate scores for each recipe and sort by the score
-    const recipeDetails = await Promise.all(
-      recipes.map(async (recipe: Recipe) => {
-        const steps = await this.stepRepository.find({
-          where: { _id: { $in: recipe.steps } } as any,
-        });
-        const ingredients = await this.ingredientRepository.find({
-          where: { _id: { $in: recipe.ingredients } } as any,
-        });
-        const _user = await this.UserService.findUserById(recipe.userId!);
-        const user = _user
-          ? {
-            id: _user.id,
-            name: _user.username,
-            avatar: _user.avatar,
-          }
-          : {
-            id: undefined,
-            name: undefined,
-            avatar: undefined,
-          };
-
-        // Calculate enhanced search score for each recipe
-        // const score = this.calculateEnhancedSearchScore(recipe, ingredients, searchPatterns, ingredientWords);
-
-        return { ...recipe, steps, ingredients, user };
-      })
+    // Filter recipes that contain all specified ingredients
+    filteredRecipes = recipesRaw.filter(recipe => 
+      ingredientIds.every(id => recipe.ingredients.includes(id))
     );
-
-    // Sort recipes by the calculated score in descending order
-    // const sortedRecipes = recipeDetails.sort((a, b) => b.score - a.score);
-
-    return { recipes: recipeDetails, total };
   }
 
+  // Fetch additional details for each recipe
+  const recipeDetails = await Promise.all(
+    filteredRecipes.map(async (recipe: Recipe) => {
+      // Fetch related data in parallel for better performance
+      const [steps, recipeIngredients, _user] = await Promise.all([
+        this.stepRepository.find({
+          where: { _id: { $in: recipe.steps } } as any,
+        }),
+        this.ingredientRepository.find({
+          where: { _id: { $in: recipe.ingredients } } as any,
+        }),
+        this.UserService.findUserById(recipe.userId!)
+      ]);
 
-  // Helper method to calculate search relevance score
-  private calculateSearchScore(
-    recipe: Recipe,
-    ingredients: any[],
-    searchWords: string[]
-  ): number {
-    let score = 0;
+      // Format user data
+      const user = _user ? {
+        id: _user.id,
+        name: _user.username,
+        avatar: _user.avatar,
+      } : {
+        id: undefined,
+        name: undefined,
+        avatar: undefined,
+      };
 
-    for (const word of searchWords) {
-      const wordRegex = new RegExp(this.escapeRegExp(word), 'i');
+      // Calculate search relevance score
+      const score = this.calculateSearchScore(recipe, recipeIngredients, query);
 
-      // Title matches (highest weight)
-      if (wordRegex.test(recipe.title)) {
-        score += 10;
-      }
+      return {
+        ...recipe,
+        steps,
+        ingredients: recipeIngredients,
+        user,
+        score
+      };
+    })
+  );
 
-      // Description matches
-      if (wordRegex.test(recipe.description)) {
-        score += 5;
-      }
+  // Sort by search relevance score
+  const sortedRecipes = recipeDetails.sort((a, b) => b.score - a.score);
 
-      // Ingredient matches
-      for (const ingredient of ingredients) {
-        if (wordRegex.test(ingredient.name)) {
-          score += 3;
-        }
-      }
+  // Return recipes with the updated total count
+  return { 
+    recipes: sortedRecipes, 
+    total: ingredients.length > 0 ? filteredRecipes.length : total 
+  };
+}
+
+// Helper method to calculate search relevance score
+private calculateSearchScore(
+  recipe: Recipe,
+  ingredients: any[],
+  searchWords: string[]
+): number {
+  let score = 0;
+
+  for (const word of searchWords) {
+    const wordRegex = new RegExp(this.escapeRegExp(word), 'i');
+
+    // Title matches (highest weight)
+    if (wordRegex.test(recipe.title)) {
+      score += 10;
     }
 
-    return score;
+    // Description matches
+    if (wordRegex.test(recipe.description)) {
+      score += 5;
+    }
+
+    // Tag matches
+    if (recipe.tags?.some(tag => wordRegex.test(tag.name))) {
+      score += 4;
+    }
+
+    // Ingredient matches
+    for (const ingredient of ingredients) {
+      if (wordRegex.test(ingredient.name)) {
+        score += 3;
+      }
+    }
   }
 
+  return score;
+}
 
+// Helper method to escape special regex characters
+private escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
   private calculateEnhancedSearchScore(
     recipe: Recipe,
@@ -702,10 +748,7 @@ export default class RecipeService {
     return score;
   }
 
-  // Helper method to escape special regex characters
-  private escapeRegExp(string: string): string {
-    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  }
+
 
   async addComment(
     recipeId: string,

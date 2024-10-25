@@ -164,18 +164,15 @@ export const enhanceSearch = async (query: string) => {
 
 1. Determine if the query is appropriate for a family-friendly recipe website. If it contains inappropriate, offensive, or adult content, mark it as invalid.
 
-2. If valid, provide a list of related single words in Vietnamese for recipe search, including:
-   - Main ingredients
-   - Dish types
-   - Cooking methods
-   - Flavors
-   - Cuisines
+2. If valid, provide a list of related words in Vietnamese for recipe search, including:
+   - Ingredients
+   - Dish name
 
 3. Follow these guidelines:
-   - Single Words Only: Each item should be a single word in Vietnamese.
-   - Diversity: Ensure a mix of ingredients, dish types, cooking methods, and flavors.
    - Relevance: All words should be closely related to the original query.
-   - Quantity: Provide 10-15 unique, single words or two-word combinations.
+   - Quantity: Provide 10-15 unique.
+
+4. - Example:
 
 Respond in the following JSON format:
 {
