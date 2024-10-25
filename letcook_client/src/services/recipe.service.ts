@@ -159,55 +159,82 @@ Provide the analysis in the following JSON format:
   return parsedResponse;
 };
 
-export const enhanceSearch = async (query: string) => {
-  const prompt = `Analyze the following recipe search query: "${query}"
+interface SearchResult {
+  isValid: boolean;
+  keyList: string[];
+}
 
-1. Determine if the query is appropriate for a family-friendly recipe website. If it contains inappropriate, offensive, or adult content, mark it as invalid.
+export const enhanceSearch = async (query: string): Promise<SearchResult> => {
+  const prompt = `Analyze the following recipe search query and provide Vietnamese culinary vocabulary: "${query}"
 
-2. If valid, provide a list of related words in Vietnamese for recipe search, including:
-   - Ingredients
-   - Dish name
+CONTEXT:
+- This is for a family-friendly recipe website
+- Focus on Vietnamese cuisine terminology
+- Ensure all responses are culturally appropriate and food-related
 
-3. Follow these guidelines:
-   - Relevance: All words should be closely related to the original query.
-   - Quantity: Provide 10-15 unique.
+TASKS:
+1. Validation Check:
+   - Verify query is appropriate for all ages
+   - Confirm it's food/cooking related
+   - Ensure no offensive/inappropriate content
 
-4. - Example:
+2. If valid, generate Vietnamese culinary terms including:
+   - Main ingredients (nguyên liệu)
+   - Related dishes (món ăn liên quan)
+   - Common seasonings (gia vị)
 
-Respond in the following JSON format:
+REQUIREMENTS:
+- Each term must be directly relevant to the query
+- Provide 10-15 unique words
+- Include both common and specialized culinary terms
+- Ensure proper Vietnamese diacritics
+
+Please respond in valid JSON format with the following structure:
 {
   "isValid": boolean,
-  "keywordList": string[], // 10-15 related single words in Vietnamese. Empty array if isValid is false.
+  "keywordList": string[]
 }`;
 
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" }
+      messages: [{ 
+        role: "user", 
+        content: prompt 
+      }],
+      response_format: { type: "json_object" },
+      temperature: 0.7,
+      max_tokens: 500
     });
 
     const content = response.choices[0].message.content;
     if (!content) {
-      throw new Error("Error calling OpenAI");
+      throw new Error("Empty response from OpenAI");
     }
 
     const parsedResponse = JSON.parse(content);
-    console.log(parsedResponse);
-
-    // Additional processing to ensure single words
-    const processedKeyList = parsedResponse.keywordList
-      .flatMap((word: string) => word.split(/\s+/))  // Split any multi-word entries
-      .filter((word: string, index: number, self: string[]) => self.indexOf(word) === index)  // Remove duplicates
-      .slice(0, 15);  // Limit to 15 words
+    
+    // Process and validate the response
+    const processedKeyList = parsedResponse.isValid 
+      ? parsedResponse.keywordList
+          .flatMap((word: string) => word.split(/\s+/))
+          .map((word: string) => word.trim())
+          .filter(Boolean)
+          .filter((word: string, index: number, self: string[]) => 
+            self.indexOf(word) === index && word.length > 1)
+          // .slice(0, 15)
+      : [];
 
     return {
       isValid: parsedResponse.isValid,
-      keyList: processedKeyList,
+      keyList: processedKeyList
     };
+
   } catch (error) {
-    console.error("Error in enhanceSearch:", error);
-    return { isValid: false, keyList: [], explanation: "An error occurred during search enhancement." };
+    return {
+      isValid: false,
+      keyList: []
+    };
   }
 };
 

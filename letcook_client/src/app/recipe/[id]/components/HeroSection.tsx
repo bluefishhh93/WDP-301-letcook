@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useEffect } from 'react';
 import { Recipe } from 'CustomTypes';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
