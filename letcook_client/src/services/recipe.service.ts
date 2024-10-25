@@ -5,6 +5,20 @@ import exp from "constants";
 import { Ingredient } from "CustomTypes";
 import { Recipe } from "CustomTypes";
 import OpenAI from "openai";
+import NodeCache from 'node-cache';
+import { revalidateTag, unstable_cache } from 'next/cache';
+
+
+// Cache key generation function
+const generateAnalysisCacheKey = (recipe: Recipe) => {
+  return `recipe-analysis-${recipe._id}-${recipe.updatedAt}`;
+};
+
+export const invalidateAnalysisCache = async (recipe: Recipe) => {
+  const tags = ['recipe-analysis'];
+  await Promise.all(tags.map(tag => revalidateTag(tag)));
+};
+
 
 const apiKey = process.env.OPENAI_API_KEY as string;
 
@@ -48,7 +62,7 @@ export const updateIngredients = async (recipeId: string, ingredientsData: Ingre
   }
 };
 
-export const getRecipeById = async (recipeId: string) => {
+export const getRecipeById =unstable_cache( async (recipeId: string) => {
   try {
     const { data } = await http.get(`${API_URL}/${recipeId}`);
     return data ?? null;
@@ -56,7 +70,11 @@ export const getRecipeById = async (recipeId: string) => {
     console.error("Error getting recipe by ID:", error);
     throw error;
   }
-};
+}, ['recipe-by-id'],
+{
+  revalidate: 3600, // Cache for 1 hour
+  tags: ['recipe']
+});
 
 export const getPublicRecipes = async (skip: number, take: number) => {
   try {
@@ -119,45 +137,49 @@ export const reportRecipe = async (recipeId: string, userId: string, report: str
 
 // ... existing code ...
 
-export const getRecipeAnalysis = async (recipe: Recipe) => {
-  const prompt = `Analyze the following recipe and provide:
-1. Nutritional information: calories, protein (g), fat (g), carbs (g)
-2. Taste profile: sweetness, sourness, saltiness, bitterness, savoriness, fattiness (scale of 0-100)
+  export const getRecipeAnalysis = unstable_cache(async (recipe: Recipe) => {
+    const prompt = `Analyze the following recipe and provide:
+  1. Nutritional information: calories, protein (g), fat (g), carbs (g)
+  2. Taste profile: sweetness, sourness, saltiness, bitterness, savoriness, fattiness (scale of 0-100)
 
-Recipe:
-${recipe.title}
-Ingredients: ${recipe.ingredients.map(i => `${i.quantity} ${i.name}`).join(', ')}
-Instructions: ${recipe.steps.join(' ')}
+  Recipe:
+  ${recipe.title}
+  Ingredients: ${recipe.ingredients.map(i => `${i.quantity} ${i.name}`).join(', ')}
+  Instructions: ${recipe.steps.join(' ')}
 
-Provide the analysis in the following JSON format:
-{
-  "nutrition": {
-    "calories": number,
-    "protein": number,
-    "fat": number,
-    "carbs": number
-  },
-  "taste": {
-    "sweet": number,
-    "sour": number,
-    "salty": number,
-    "bitter": number,
-    "savory": number,
-    "fatty": number
-  }
-}`;
+  Provide the analysis in the following JSON format:
+  {
+    "nutrition": {
+      "calories": number,
+      "protein": number,
+      "fat": number,
+      "carbs": number
+    },
+    "taste": {
+      "sweet": number,
+      "sour": number,
+      "salty": number,
+      "bitter": number,
+      "savory": number,
+      "fatty": number
+    }
+  }`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [{ role: "user", content: prompt }],
-    response_format: { type: "json_object" }
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+      response_format: { type: "json_object" }
+    });
+    console.log(response.choices[0].message.content);
+
+    const analysisText = response.choices[0].message.content;
+    const parsedResponse = JSON.parse(analysisText || "{}");
+    return parsedResponse;
+  }, ['recipe-analysis'],
+  {
+    revalidate: 3600, // Cache for 1 hour
+    tags: ['recipe']
   });
-  console.log(response.choices[0].message.content);
-
-  const analysisText = response.choices[0].message.content;
-  const parsedResponse = JSON.parse(analysisText || "{}");
-  return parsedResponse;
-};
 
 interface SearchResult {
   isValid: boolean;

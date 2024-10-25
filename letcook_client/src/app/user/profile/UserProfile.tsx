@@ -57,7 +57,7 @@ const UserProfile = () => {
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const user = session?.user;
     const { profile, isLoading: isProfileLoading, error: profileError, refetch: refetchProfile } = useProfile();
-
+    
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
     });
@@ -66,12 +66,12 @@ const UserProfile = () => {
         setIsLoading(true);
         try {
             const [postsRes, myRecipesRes, savedRecipesRes, followingRes] = await Promise.all([
-                PostService.getPostWithUserId(userId),
-                RecipeService.getRecipesByUserId(userId),
-                RecipeService.getFavoriteRecipes(userId),
-                UserService.getFollowingUsers(userId), // Lấy danh sách người theo dõi
+                PostService.getPostWithUserId(user?.accessToken!),
+                RecipeService.getRecipesByUserId(user?.accessToken!),
+                RecipeService.getFavoriteRecipes(user?.accessToken!),
+                UserService.getFollowingUsers(user?.id!), // Lấy danh sách người theo dõi
             ]);
-
+            console.log(postsRes, myRecipesRes, savedRecipesRes, followingRes);
             setPosts(postsRes || []);
             setMyRecipes(myRecipesRes || []);
             setSavedRecipes(savedRecipesRes || []);
