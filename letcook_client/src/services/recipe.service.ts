@@ -1,10 +1,10 @@
 "use server"; 
 import http from "@/lib/axios";
-import { callApi } from "@/utils/callApi";
 import { Ingredient } from "CustomTypes";
 import { Recipe } from "CustomTypes";
 import OpenAI from "openai";
 import { revalidateTag, unstable_cache } from 'next/cache';
+import { callApi } from "@/utils/callApi";
 
 
 // Cache key generation function
@@ -38,7 +38,13 @@ export const createRecipe = async (
   token: string
 ): Promise<RecipeResponse> => {
   try {
-    const res = await callApi(`${API_URL}`, 'POST', recipeData, token, true);
+    const res = await callApi({
+      url: `${API_URL}`,
+      method: 'POST',
+      body: recipeData,
+      token,
+      multipart: true,
+    });
     return { status: res.status, data: res.data };
   } catch (error) {
     return { status: 500, data: null };
@@ -104,7 +110,11 @@ export const searchRecipes = async (searchWords: string[], ingredients: string[]
 
 export const getRecipesByUserId = async (token: string) => {
   try {
-    const { data } = await callApi(`${API_URL}/user`, 'GET', null, token);
+    const { data } = await callApi({
+      url: `${API_URL}/user`,
+      method: 'GET',
+      token,
+    });
     return data;
   } catch (error) {
     console.error("Error getting recipes by user ID:", error);
@@ -114,7 +124,11 @@ export const getRecipesByUserId = async (token: string) => {
 
 export const getFavoriteRecipes = async (token: string) => {
   try {
-    const { data } = await callApi(`${API_URL}/favorite`, 'GET', null, token);
+    const { data } = await callApi({
+      url: `${API_URL}/favorite`,
+      method: 'GET',
+      token,
+    });
     return data;
   } catch (error) {
     console.error("Error getting favorite recipes:", error);

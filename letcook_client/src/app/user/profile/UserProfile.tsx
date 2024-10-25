@@ -65,21 +65,17 @@ const UserProfile = () => {
     const fetchData = useCallback(async (token: string) => {
         setIsLoading(true);
         try {
-            // const [postsRes, myRecipesRes, savedRecipesRes, followingRes] = await Promise.all([
-            //     PostService.getPostWithUserId(user?.accessToken!),
-            //     RecipeService.getRecipesByUserId(user?.accessToken!),
-            //     RecipeService.getFavoriteRecipes(user?.accessToken!),
-            //     UserService.getFollowingUsers(user?.id!), // Lấy danh sách người theo dõi
-            // ]);
-            // console.log(postsRes, myRecipesRes, savedRecipesRes, followingRes);
-            // setPosts(postsRes || []);
-            // setMyRecipes(myRecipesRes || []);
-            // setSavedRecipes(savedRecipesRes || []);
-            // setFollowingUsers(followingRes || []); // Cập nhật danh sách người theo dõi
-            const followingRes = await UserService.getFollowingUsers(user?.id!);
-            console.log(followingRes,'followingRes');
-            const recipesRes = await RecipeService.getRecipesByUserId(user?.accessToken!);
-            console.log(recipesRes,'recipesRes');
+            const [postsRes, myRecipesRes, savedRecipesRes, followingRes] = await Promise.all([
+                PostService.getPostWithUserId(user?.accessToken!),
+                RecipeService.getRecipesByUserId(user?.accessToken!),
+                RecipeService.getFavoriteRecipes(user?.accessToken!),
+                UserService.getFollowingUsers(user?.id!), // Lấy danh sách người theo dõi
+            ]);
+            console.log(postsRes, myRecipesRes, savedRecipesRes, followingRes);
+            setPosts(postsRes || []);
+            setMyRecipes(myRecipesRes || []);
+            setSavedRecipes(savedRecipesRes || []);
+            setFollowingUsers(followingRes || []); // Cập nhật danh sách người theo dõi
         } catch (error) {
             console.error('Error fetching user data:', error);
         } finally {

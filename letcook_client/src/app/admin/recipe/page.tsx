@@ -20,7 +20,12 @@ export default function RecipePage() {
 
   const handleAction = async (id: string, action: 'accept' | 'reject', feedback: string) => {
     try {
-      const response = await callApi(`/api/recipe/${id}/${action}`, 'POST', { feedback }, user?.accessToken);
+      const response = await callApi({
+        url: `/api/recipe/${id}/${action}`,
+        method: 'POST',
+        body: { feedback },
+        token: user?.accessToken,
+      });
       const updatedRecipe = response.data; // Assuming the updated recipe is returned in the response data
 
       // Update the recipes state with the updated recipe

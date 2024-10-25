@@ -1,6 +1,18 @@
 import axios from 'axios';
 
-export async function callApi(url: string, method: string, body?: any, token?: string, multipart: boolean = false) {
+export async function callApi({
+  url,
+  method,
+  body,
+  token,
+  multipart
+}: {
+  url: string;
+  method: string;
+  body?: any;
+  token?: string;
+  multipart?: boolean;
+}) {
     const response = await axios({
     url: `${process.env.NEXT_PUBLIC_API_URL}${url}`,
     method: method,
@@ -8,7 +20,7 @@ export async function callApi(url: string, method: string, body?: any, token?: s
       'Content-Type': multipart ? 'multipart/form-data' : 'application/json',
       'Authorization': token ? `Bearer ${token}` : undefined,
     },
-    data: body,
+    ...(body && { data: body }),
   });
   return response;
 }

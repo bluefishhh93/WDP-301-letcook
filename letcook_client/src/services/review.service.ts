@@ -1,5 +1,4 @@
 import http from "@/lib/axios";
-import openai from "@/lib/openai";
 import { ReviewType } from "CustomTypes";
 
 

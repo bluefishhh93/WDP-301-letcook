@@ -9,7 +9,7 @@ const upload = multer({ dest: "uploads/" });
 const reviewRouter = express.Router();
 const reviewController = new ReviewController();
 
-reviewRouter.post("/review", upload.array("images"), async (req, res, next) => {
+reviewRouter.post("/review", upload.array("images"), async (req, res, next) : Promise<any> => {
   try {
     if (req.files && (req.files.length as number) > 0) {
       const files = req.files as Express.Multer.File[];

@@ -14,5 +14,6 @@ userRouter.get("/user/:id",verifyToken , userController.getUserById.bind(userCon
 userRouter.get("/users", userController.getListUser.bind(userController));
 userRouter.get("/users/following/:id", userController.getListUserFollowed.bind(userController));
 userRouter.put("/users/following/:id", userController.addFollowedUser.bind(userController));
+userRouter.get("/users/followers/:id", userController.getListUserFollowers.bind(userController));
 
 export default userRouter;

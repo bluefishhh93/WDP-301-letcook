@@ -73,6 +73,18 @@ export default class UserController {
         next(error);
       }
     };
+
+    getListUserFollowers = async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const userId = req.params.id; // ID of the user whose followers we want to get
+        const followers = await this.userService.getListUserFollowers(userId);
+        res.status(200).json(followers);
+      } catch (error) {
+        console.error('Error in getListUserFollowers:', error);
+        next(error);
+      }
+    };
 }
+
 
 export const userController = new UserController();

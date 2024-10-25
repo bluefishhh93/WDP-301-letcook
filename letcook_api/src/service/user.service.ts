@@ -48,7 +48,6 @@ class UserService {
       where: { id: userId },
       relations: ['followedUsers'], // Lấy thông tin người dùng đã theo dõi
     });
-
     return user?.followedUsers || []; // Trả về danh sách người dùng đã theo dõi hoặc mảng rỗng
   }
 
@@ -91,7 +90,14 @@ console.log('Received followedUserId:', followedUserId);
   }
 
 
-  //get all user who follow user
+  async getListUserFollowers(userId: string): Promise<User[]> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['followers'], // Load the followers relation
+    });
+  
+    return user?.followers || []; // Return the list of followers or an empty array
+  }
 
 }
 
