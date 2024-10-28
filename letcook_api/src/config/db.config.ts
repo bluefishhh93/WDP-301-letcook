@@ -31,18 +31,8 @@ import { Favorite } from "@/entity/favourite.entity";
 // import env from '@/util/validateEnv';
 const MongoDataSource = new DataSource({
   type: "mongodb",
-  // url: `mongodb://localhost:27017/api`,
-  url: `${env.LOCAL_MONGO}`,
-
-  // host: env.MONGO_HOST,
-  // port: env.MONGO_PORT,
-  // database: env.MONGO_DB,
-  // username: env.MONGO_USER,1
-  // password: env.MONGO_PASS,
-  
-  // useUnifiedTopology: true,
-  // useNewUrlParser: true,
-
+  url: `mongodb+srv://${env.MONGO_USER}:${env.MONGO_PASS}@${env.MONGO_HOST}/${env.MONGO_DB}?retryWrites=true&w=majority`,
+  // url: `${env.LOCAL_MONGO}`,
   synchronize: false,
   logging: false,
   // entities: [__dirname + '/entity/*.ts'],
@@ -66,8 +56,8 @@ const MongoDataSource = new DataSource({
 
 const PostgresDataSource = new DataSource({
   type: "postgres",
-  // url: env.POSTGRES_EXTERNAL_URL,
-  url: `${env.LOCAL_POSTGRES}`,
+  url: env.POSTGRES_EXTERNAL_URL,
+  // url: `${env.LOCAL_POSTGRES}`,
   // ssl: {
   //   rejectUnauthorized: false, // This is important if you don't have a custom CA
   // },

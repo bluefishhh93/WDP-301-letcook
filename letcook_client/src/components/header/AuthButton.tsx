@@ -35,6 +35,7 @@ export default function AuthButton() {
   const { data: session, status } = useSession();
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const {avatarUrl} = useAvatar();
 
   const fetchProfileData = useCallback(async () => {
     if (session?.user?.accessToken && !profile) {
@@ -74,7 +75,7 @@ export default function AuthButton() {
       {session?.user ? (
         <UserAvatar
           username={session.user.username || 'User'}
-          avatar={profile?.avatar || ''}
+          avatar={ avatarUrl || profile?.avatar}
           handleLogout={handleLogout}
         />
       ) : (
