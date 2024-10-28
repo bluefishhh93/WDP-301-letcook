@@ -39,7 +39,8 @@ export default function RecipeSection() {
           // Otherwise, append new recipes
           return [...prevRecipes, ...newRecipes];
         });
-        setHasMore((page + 1) * ITEMS_PER_PAGE < total);
+        const currentTotal = page * ITEMS_PER_PAGE;
+        setHasMore(currentTotal < total);
         if (user) {
           const recipeIds = newRecipes.map((recipe: Recipe) => recipe._id);
           await fetchFavoriteStatuses(recipeIds, user.id);

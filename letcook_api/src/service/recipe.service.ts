@@ -141,6 +141,8 @@ export default class RecipeService {
         };
       }),
     );
+    console.log("recipeDetails", recipeDetails);
+    console.log("total", total);
     return { recipes: recipeDetails, total };
   }
   /*
@@ -601,12 +603,9 @@ async searchRecipes(
   if (skip !== undefined) options.skip = skip;
   if (take !== undefined) options.take = take;
 
-  // Get recipes and total count
-  const [recipesRaw, total] = await this.recipeRepository.findAndCount(options);
-
-  // If ingredients are specified, filter recipes that contain all specified ingredients
-  let filteredRecipes = recipesRaw;
-  if (ingredients.length > 0) {
+  //filter recipe by ingredients
+  if(ingredients.length > 0){
+ 
     // Get ingredient IDs for the ingredient filter with case-insensitive and partial matching
     const ingredientIds = await this.ingredientRepository.find({
       where: {
@@ -616,15 +615,22 @@ async searchRecipes(
       } as any
     }).then(ingredients => ingredients.map(ingredient => ingredient._id));
 
-    // Filter recipes that contain all specified ingredients
-    filteredRecipes = recipesRaw.filter(recipe => 
-      ingredientIds.every(id => recipe.ingredients.includes(id))
-    );
+
+    options.where = {
+      ...options.where,
+      ingredients: { $in: ingredientIds }
+    };
+  
   }
+
+  // Get recipes and total count
+  const [searchResult, total] = await this.recipeRepository.findAndCount(options);
+
+  
 
   // Fetch additional details for each recipe
   const recipeDetails = await Promise.all(
-    filteredRecipes.map(async (recipe: Recipe) => {
+    searchResult.map(async (recipe: Recipe) => {
       // Fetch related data in parallel for better performance
       const [steps, recipeIngredients, _user] = await Promise.all([
         this.stepRepository.find({
@@ -666,7 +672,7 @@ async searchRecipes(
   // Return recipes with the updated total count
   return { 
     recipes: sortedRecipes, 
-    total: ingredients.length > 0 ? filteredRecipes.length : total 
+    total: ingredients.length > 0 ? searchResult.length : total 
   };
 }
 

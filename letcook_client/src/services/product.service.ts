@@ -3,6 +3,7 @@ import http from '@/lib/axios';
 import { PaginatedProducts, ProductType, QueryParams } from 'CustomTypes';
 import { buildQueryString } from '@/utils/commons.utils';
 import handleAxiosError from '@/utils/handleError.utils';
+import { callApi } from '@/utils/callApi';
 
 const API_URL = '/api/products';
 
@@ -26,9 +27,14 @@ export const getAllProducts = async (): Promise<ProductType[]> => {
 }
 
 
-export const createProduct = async (productData: Omit<ProductType, 'id'>): Promise<ProductType | null> => {
+export const createProduct = async ({productData, accessToken}: {productData: Omit<ProductType, 'id'>, accessToken: string}): Promise<ProductType | null> => {
   try {
-    const res = await http.post<ProductType>(API_URL, productData);
+    const res = await callApi({
+      method: 'POST',
+      url: API_URL,
+      body: productData,
+      token: accessToken,
+    });
     return res.data;
   } catch (error) {
     handleAxiosError(error, 'Error creating product');
@@ -36,9 +42,14 @@ export const createProduct = async (productData: Omit<ProductType, 'id'>): Promi
   }
 };
 
-export const updateProduct = async (productData: ProductType): Promise<ProductType | null> => {
+export const updateProduct = async ({productData, accessToken}: {productData: ProductType, accessToken: string}): Promise<ProductType | null> => {
   try {
-    const res = await http.put<ProductType>(`${API_URL}/${productData.id}`, productData);
+    const res = await callApi({
+      method: 'PUT',
+      url: `${API_URL}/${productData.id}`,
+      body: productData,
+      token: accessToken,
+    });
     return res.data;
   } catch (error) {
     handleAxiosError(error, 'Error updating product');

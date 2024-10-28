@@ -24,6 +24,7 @@ import {
   BasicInfoData,
   NutritionData,
 } from "@/validation/productSchema";
+import useAuth from "@/hooks/useAuth";
 
 const initialProductState: ProductType = {
   id: 0,
@@ -70,6 +71,7 @@ const CreateProductDialog: React.FC<CreateProductDialogProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [newProduct, setNewProduct] = useState<ProductType>(initialProductState);
   const [loading, setLoading] = useState(false);
+  const {user} = useAuth();
 
   useEffect(() => {
     if (!open) {
@@ -143,7 +145,7 @@ const CreateProductDialog: React.FC<CreateProductDialogProps> = ({
 
   const handleCreateProduct = async (productData: ProductType) => {
     try {
-      const createdProduct = await ProductService.createProduct(productData);
+      const createdProduct = await ProductService.createProduct({productData, accessToken: user!.accessToken});
       if (createdProduct) {
         onCreateSuccess(createdProduct);
         handleOpenChange(false);
