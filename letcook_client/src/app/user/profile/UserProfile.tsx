@@ -129,10 +129,10 @@ const UserProfile = () => {
             }
 
             const { url } = await response.json();
-            const res = await UserService.updateUserProfile(user.id, { avatar: url });
-            update({ ...session, user: { ...session?.user, avatar: url } });
+            const res = await UserService.updateUserProfile(user.accessToken, { avatar: url });
+            await update((prev: any) => ({ ...prev, user: { ...prev.user, avatar: url } }));
             revalidatePath('/user');
-            form.reset();
+            form.reset();        
         } catch (error) {
             console.error('Error uploading image:', error);
             form.setError('image', {
