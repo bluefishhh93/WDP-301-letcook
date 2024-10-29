@@ -18,6 +18,7 @@
 // };
 import Post from '../components/DemoPost';
 import Comment from './Comment';
+// eslint-disable-next-line react/display-name
 export default async ({ params }: { params: { id: string } }) => {
   return (
     <>
