@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react';
 
 
 import { useSession } from 'next-auth/react';
+import { ArrowRight } from 'lucide-react';
 
 export default function ListPost({
   tag,
@@ -60,21 +61,82 @@ export default function ListPost({
   return (
     <div className="container mx-auto px-4 py-12 md:px-6 lg:py-16">
       <BreadcrumbPost />
-      {isLoading ? (
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {posts.map((_, i) => (
-            <PostSkeleton index={i} />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post, i) => (
-            <div key={post._id}>
-              <PostCard post={post} />
+      {!isLoading && posts.length > 0 && (
+        <div className="mb-12">
+          <h2 className="text-3xl font-bold mb-8 text-gray-800 dark:text-gray-100">
+            Featured Post
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="relative h-[400px] rounded-xl overflow-hidden">
+              <img
+                src={posts[0].image}
+                alt={posts[0].title}
+                className="w-full h-full object-cover"
+              />
             </div>
-          ))}
+            <div className="flex flex-col justify-center space-y-4">
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={posts[0].user.avatar} />
+                  <AvatarFallback>{getInitials(posts[0].user.username)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium text-gray-800 dark:text-gray-200">
+                    {posts[0].user.username}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {formatISODateToLongDate(posts[0].createdAt)}
+                  </p>
+                </div>
+              </div>
+              <h3 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+                {posts[0].title}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 line-clamp-3">
+                {/* {posts[0].description} */}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {posts[0].tags?.map((tag) => (
+                  <Link
+                    key={tag.name}
+                    href={`/post?tag=${tag.name}`}
+                    className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    {tag.name}
+                  </Link>
+                ))}
+              </div>
+              <Link
+                href={`/post/${posts[0]._id}`}
+                className="inline-flex items-center space-x-2 text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+              >
+                <span>Read More</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
         </div>
       )}
+
+      {/* Recent Posts Grid */}
+      <div className="mb-12">
+        <h2 className="text-2xl font-bold mb-8 text-gray-800 dark:text-gray-100">
+          Recent Posts
+        </h2>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array(6).fill(null).map((_, i) => (
+              <PostSkeleton key={i} index={i} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {posts.slice(1).map((post) => (
+              <PostCard key={post._id} post={post} />
+            ))}
+          </div>
+        )}
+      </div>
       <Separator className="my-6" />
       <PagePagination
         page={page}

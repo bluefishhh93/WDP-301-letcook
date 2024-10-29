@@ -16,6 +16,7 @@ import NutritionFormUpdate from "./NutritionFormUpdate";
 import UpdateImage from "./UpdateImage";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { productSchema, ProductFormData } from "@/validation/productSchema";
+import useAuth from "@/hooks/useAuth";
 
 interface UpdateProductDialogProps {
   selectedProduct: ProductType;
@@ -34,6 +35,7 @@ const UpdateProductDialog: React.FC<UpdateProductDialogProps> = ({
   const [currentTab, setCurrentTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const imageUploadRef = useRef<ProductImageUploadHandle>(null);
+  const {user} = useAuth();
 
   const methods = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -107,7 +109,7 @@ const UpdateProductDialog: React.FC<UpdateProductDialogProps> = ({
         })),
       };
 
-      const data = await ProductService.updateProduct(updatedProduct);
+      const data = await ProductService.updateProduct({productData: updatedProduct, accessToken: user!.accessToken});
       if (data) {
         onUpdateSuccess(data);
         handleOpenChange(false);

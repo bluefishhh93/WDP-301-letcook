@@ -199,31 +199,33 @@ interface SearchResult {
 }
 
 export const enhanceSearch = async (query: string): Promise<SearchResult> => {
-  const prompt = `Analyze the following recipe search query and provide Vietnamese culinary vocabulary: "${query}"
+  const prompt = `Analyze the following Vietnamese recipe search query: "${query}"
 
 CONTEXT:
-- This is for a family-friendly recipe website
-- Focus on Vietnamese cuisine terminology
-- Ensure all responses are culturally appropriate and food-related
+- Đây là website dạy nấu ăn cho gia đình Việt Nam
+- Tập trung vào từ khóa ẩm thực Việt Nam
+- Đảm bảo kết quả phù hợp văn hóa và liên quan đến món ăn
 
 TASKS:
-1. Validation Check:
-   - Verify query is appropriate for all ages
-   - Confirm it's food/cooking related
-   - Ensure no offensive/inappropriate content
+1. Phân tích từ khóa tìm kiếm:
+   - Xác định loại món ăn (món mặn, món chay, món tráng miệng)
+   - Xác định phương pháp nấu (chiên, xào, hấp, nướng)
+   - Xác định đặc điểm món ăn (cay, ngọt, béo, giảm cân)
 
-2. If valid, generate Vietnamese culinary terms including:
-   - Main ingredients (nguyên liệu)
-   - Related dishes (món ăn liên quan)
-   - Common seasonings (gia vị)
+2. Tạo danh sách từ khóa liên quan:
+   - Nguyên liệu chính
+   - Món ăn tương tự
+   - Gia vị đặc trưng
+   - Cách chế biến
+   - Đặc tính dinh dưỡng
 
 REQUIREMENTS:
-- Each term must be directly relevant to the query
-- Provide 10-15 unique words
-- Include both common and specialized culinary terms
-- Ensure proper Vietnamese diacritics
+- Mỗi từ khóa phải liên quan trực tiếp đến món ăn
+- Ưu tiên từ khóa phổ biến trong nấu ăn
+- Đảm bảo dấu tiếng Việt chính xác
+- Kết hợp cả từ đơn và cụm từ có nghĩa
 
-Please respond in valid JSON format with the following structure:
+Please respond in valid JSON format:
 {
   "isValid": boolean,
   "keywordList": string[]
@@ -237,7 +239,7 @@ Please respond in valid JSON format with the following structure:
         content: prompt 
       }],
       response_format: { type: "json_object" },
-      temperature: 0.7,
+      temperature: 0.3,
       max_tokens: 500
     });
 
@@ -251,12 +253,10 @@ Please respond in valid JSON format with the following structure:
     // Process and validate the response
     const processedKeyList = parsedResponse.isValid 
       ? parsedResponse.keywordList
-          .flatMap((word: string) => word.split(/\s+/))
           .map((word: string) => word.trim())
           .filter(Boolean)
           .filter((word: string, index: number, self: string[]) => 
             self.indexOf(word) === index && word.length > 1)
-          // .slice(0, 15)
       : [];
 
     return {
@@ -265,6 +265,7 @@ Please respond in valid JSON format with the following structure:
     };
 
   } catch (error) {
+    console.error('Search enhancement error:', error);
     return {
       isValid: false,
       keyList: []
