@@ -224,8 +224,9 @@ REQUIREMENTS:
 - Ưu tiên từ khóa phổ biến trong nấu ăn
 - Đảm bảo dấu tiếng Việt chính xác
 - Kết hợp cả từ đơn và cụm từ có nghĩa
+- Trả về 10 từ khóa liên quan nhất
 
-Please respond in valid JSON format:
+Please respond in valid JSON format:  
 {
   "isValid": boolean,
   "keywordList": string[]
