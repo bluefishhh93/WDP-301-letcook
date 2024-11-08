@@ -65,7 +65,7 @@ const MongoDataSource = new DataSource({
 const PostgresDataSource = new DataSource({
   type: "postgres",
   // url: env.POSTGRES_EXTERNAL_URL,
-  url: "postgresql://postgres:1121212@localhost:5432/letcook",
+  url: "postgresql://postgres:12345@localhost:5432/letcook",
   // ssl: {
   //   rejectUnauthorized: false, // This is important if you don't have a custom CA
   // },

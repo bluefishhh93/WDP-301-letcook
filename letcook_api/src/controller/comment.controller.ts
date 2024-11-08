@@ -6,12 +6,11 @@ export default class CommentController {
 
   addComment = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { content, userId, postId, commentId } = req.body;
+      const { content, userId, postId } = req.body;
       const newComment = await this.commentService.newComment(
         content,
         userId,
-        postId,
-        commentId,
+        postId
       );
       const comment = await this.commentService.addComment(newComment);
       res.status(200).json(comment);

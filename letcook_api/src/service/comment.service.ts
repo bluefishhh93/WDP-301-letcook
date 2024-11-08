@@ -104,25 +104,25 @@ class CommentService {
     content: string,
     userId: string,
     postId: string,
-    commentId: string | null,
+    // commentId: string | null,
   ): Promise<Comment> {
     const comment = new Comment();
     comment.content = content;
     comment.userId = userId;
     comment.postId = (await this.getPostById(postId))!._id;
     comment.createdAt = new Date();
-    if (commentId) {
-      comment.parentId = new ObjectId(commentId);
-    }
+    // if (commentId) {
+    //   comment.parentId = new ObjectId(commentId);
+    // }
     return comment;
   }
 
   async addComment(comment: Comment): Promise<Comment> {
-    if (!comment.parentId) {
-      await this.setLeftAndRightForComment(comment);
-    } else {
-      await this.setLeftAndRightForReply(comment);
-    }
+    // if (!comment.parentId) {
+    //   await this.setLeftAndRightForComment(comment);
+    // } else {
+    //   await this.setLeftAndRightForReply(comment);
+    // }
     const _comment = await this.commentRepository.save(comment);
     const _post = await this.findPost(_comment.postId!);
     !_post.comments && (_post.comments = []);
@@ -134,47 +134,47 @@ class CommentService {
     return _comment;
   }
 
-  getMaxRight(comments: Comment[]): number {
-    if (comments.length === 0) {
-      return 0; // or any other default value
-    }
-    return Math.max(...comments.map((comment) => comment.right || 0));
-  }
+  // getMaxRight(comments: Comment[]): number {
+  //   if (comments.length === 0) {
+  //     return 0; // or any other default value
+  //   }
+  //   return Math.max(...comments.map((comment) => comment.right || 0));
+  // }
 
-  async updateRight(comment: Comment): Promise<void> {
-    if (comment.parentId) {
-      comment.right = comment.right + 2;
-      await this.updateRight(
-        await this.getCommentById(comment.parentId.toString()),
-      );
-    } else {
-      comment.right = comment.right + 2;
-      console.log('After updating:', comment.right);
-      await this.commentRepository.save(comment);
-    }
-  }
+  // async updateRight(comment: Comment): Promise<void> {
+  //   if (comment.parentId) {
+  //     comment.right = comment.right + 2;
+  //     await this.updateRight(
+  //       await this.getCommentById(comment.parentId.toString()),
+  //     );
+  //   } else {
+  //     comment.right = comment.right + 2;
+  //     console.log('After updating:', comment.right);
+  //     await this.commentRepository.save(comment);
+  //   }
+  // }
 
-  async setLeftAndRightForComment(comment: Comment): Promise<void> {
-    const comments = await this.getAllComments();
-    const maxRight = this.getMaxRight(comments);
-    comment.left = maxRight + 1;
-    comment.right = maxRight + 2;
-    await this.commentRepository.save(comment);
-  }
+  // async setLeftAndRightForComment(comment: Comment): Promise<void> {
+  //   const comments = await this.getAllComments();
+  //   const maxRight = this.getMaxRight(comments);
+  //   comment.left = maxRight + 1;
+  //   comment.right = maxRight + 2;
+  //   await this.commentRepository.save(comment);
+  // }
 
-  async setLeftAndRightForReply(comment: Comment): Promise<void> {
-    const parent = await this.getCommentById(comment.parentId!.toString());
-    comment.left = parent.right;
-    comment.right = parent.right + 1;
-    await this.commentRepository.save(comment);
-    await this.updateRight(parent);
-    const comments = await this.getAllComments();
-    for (const _comment1 of comments
-        .filter((_comment) => _comment.left >= comment.right)) {
-          _comment1.left += 2;
-          _comment1.right += 2;
-          await this.commentRepository.save(_comment1);
-        }
-  }
+  // async setLeftAndRightForReply(comment: Comment): Promise<void> {
+  //   const parent = await this.getCommentById(comment.parentId!.toString());
+  //   comment.left = parent.right;
+  //   comment.right = parent.right + 1;
+  //   await this.commentRepository.save(comment);
+  //   await this.updateRight(parent);
+  //   const comments = await this.getAllComments();
+  //   for (const _comment1 of comments
+  //       .filter((_comment) => _comment.left >= comment.right)) {
+  //         _comment1.left += 2;
+  //         _comment1.right += 2;
+  //         await this.commentRepository.save(_comment1);
+  //       }
+  // }
 }
 export default CommentService;

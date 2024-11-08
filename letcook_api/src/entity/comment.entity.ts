@@ -22,14 +22,14 @@ export class Comment extends BaseEntity {
   @Column(() => ObjectId)
   postId?: ObjectId;
 
-  @Column()
-  left!: number;
+  // @Column()
+  // left!: number;
 
-  @Column()
-  right!: number;
+  // @Column()
+  // right!: number;
 
-  @Column(() => ObjectId)
-  parentId?: ObjectId;
+  // @Column(() => ObjectId)
+  // parentId?: ObjectId;
 
   // @Column()
   // @ManyToOne(() => Comment, (comment) => comment.children, { nullable: true })
