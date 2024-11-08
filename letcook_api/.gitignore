@@ -1,5 +1,7 @@
 # Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
 
+package-lock.json
+bun.lockb
 # Logs
 
 logs
@@ -58,6 +60,7 @@ build/Release
 
 node_modules/
 jspm_packages/
+bun.lockb
 
 # Snowpack dependency directory (https://snowpack.dev/)
 

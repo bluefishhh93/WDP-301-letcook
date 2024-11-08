@@ -20,7 +20,9 @@ import Notification from '../Notification';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import Link from 'next/link';
-import useProfile from '@/hooks/useProfile';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useAvatar } from '@/context/avatar-context';
+import { fetchProfile } from '@/services/user.service';
 interface LoginFormProps {
   handleGoogleLogin: () => void;
 }
@@ -31,19 +33,49 @@ interface UserAvatarProps {
 }
 export default function AuthButton() {
   const { data: session, status } = useSession();
-  const {profile , isLoading} = useProfile(session?.user.id!);
+  const [profile, setProfile] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const {avatarUrl} = useAvatar();
+
+  const fetchProfileData = useCallback(async () => {
+    if (session?.user?.accessToken && !profile) {
+      setIsLoading(true);
+      try {
+        const data = await fetchProfile(session.user.accessToken);
+        setProfile(data);
+      } catch (error) {
+        console.error('Failed to fetch profile:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [session, profile]);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      fetchProfileData();
+    }
+  }, [status, fetchProfileData]);
+
   const handleGoogleLogin = async () => {
     await signIn('google');
   };
+
   const handleLogout = async () => {
     await signOut();
+    setProfile(null);
   };
+
+  if (status === 'loading' || isLoading) {
+    return <Button variant="outline" disabled>Loading...</Button>;
+  }
+
   return (
     <>
       {session?.user ? (
         <UserAvatar
-          username={session.user.username}
-          avatar={profile?.avatar!}
+          username={session.user.username || 'User'}
+          avatar={ avatarUrl || profile?.avatar}
           handleLogout={handleLogout}
         />
       ) : (

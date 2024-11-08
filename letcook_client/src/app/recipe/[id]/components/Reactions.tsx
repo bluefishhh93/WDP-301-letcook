@@ -77,7 +77,7 @@ function Reactions({ recipeId }: { recipeId: string }) {
     fetching();
   }, [user]);
   return (
-    <div className="bg-muted rounded-lg p-6">
+    <div className="bg-white rounded-lg p-6 dark:bg-slate-800">
       <h3 className="text-2xl font-bold mb-4">Reactions</h3>
       <div className="flex items-center space-x-8">
         <button

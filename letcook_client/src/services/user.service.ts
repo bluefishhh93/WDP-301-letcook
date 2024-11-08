@@ -1,19 +1,47 @@
+// src/services/user.service.ts
 import http from "@/lib/axios";
-import { User } from "CustomTypes";
+import { callApi } from "@/utils/callApi";
 
-export const fetchProfile = async (userId: string) => {
-    const response = await http.get(`/api/user/${userId}`);
-    return response.data;
-}
 
-export const updateProfile = async (userId: string, data: {
+
+type UserProfile = {
     username?: string;
     phone?: string | null;
     address?: string | null;
     bio?: string | null;
     avatar?: string | null;
-}) => {
-    const response = await http.put(`/api/user/${userId}`, data);
-    return response.data;
-}
+};
 
+export const fetchProfile = async (token: string) => {
+  const response = await callApi({
+    url: `/api/user`,
+    method: 'GET',
+    token,
+  });
+  return response.data;
+};
+
+export const updateUserProfile = async (token: string, data: Partial<UserProfile>) => {
+  const response = await callApi({
+    url: `/api/user`,
+    method: 'PUT',
+    body: data,
+    token,
+  });
+  return response.data;
+};
+
+export const uploadImageToCloudinary = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await http.post('/api/cloudinary', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+
+  return response.data.url;
+};
+export const getFollowingUsers = async (userId: string) => {
+  const response = await http.get(`/api/users/following/${userId}`);
+  return response.data;
+};

@@ -248,10 +248,10 @@ export default function RecipeIngredientsDialog({ recipe, onAssignSuccess }: Rec
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {ingredients.map((ingredient, index) => (
-              <div
-              key={ingredient._id}
-              className="flex items-center justify-between bg-white rounded-lg shadow-md p-2 transition-colors hover:bg-gray-100"
-              >
+             <div
+             key={ingredient._id || index}
+             className="flex items-center justify-between bg-white rounded-lg shadow-md p-2 transition-colors hover:bg-gray-100"
+           >
                 <div className="flex items-center gap-3">
                   <div className="font-semibold text-gray-700">{ingredient.name}</div>
                   <span className="text-sm text-gray-500">

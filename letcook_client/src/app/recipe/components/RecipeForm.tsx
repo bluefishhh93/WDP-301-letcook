@@ -91,7 +91,7 @@ const EnhancedRecipeForm: React.FC = () => {
 
 
     const formData = new FormData();
-    formData.append("userId", user.id)
+    // formData.append("userId", user.id)
     formData.append("title", title);
     formData.append("description", description);
     formData.append("cookTime", cookTime.toString());
@@ -113,7 +113,7 @@ const EnhancedRecipeForm: React.FC = () => {
 
     try {
       setIsSaving(true);
-      const response = await RecipeService.createRecipe(formData);
+      const response = await RecipeService.createRecipe(formData, user.accessToken);
 
       if (response.status === 200) {
         setSubmittedRecipe(response.data as Recipe);

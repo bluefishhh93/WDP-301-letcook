@@ -47,7 +47,7 @@ const SortFilterPanel: React.FC<SortFilterPanelProps> = ({
       <div className="pt-6">
         <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200 flex items-center">
           <Filter className="mr-2 h-5 w-5" />
-          Filter By Category
+          Category
         </h3>
         <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
           {categories.map((category) => (

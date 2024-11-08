@@ -11,8 +11,8 @@ export default function RecipeList({ recipes }: RecipeListProps) {
   if (recipes.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-xl font-semibold">No recipes found</p>
-        <p className="text-gray-600">Try adjusting your search or filters</p>
+        <p className="text-xl font-semibold dark:text-white">No recipes found</p>
+        <p className="text-gray-600 dark:text-gray-400">Try adjusting your search or filters</p>
       </div>
     );
   }
@@ -20,13 +20,13 @@ export default function RecipeList({ recipes }: RecipeListProps) {
   return (
     <div className="space-y-4">
       {recipes.map((recipe) => (
-        <div key={recipe._id} className="bg-white border rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+        <div key={recipe._id} className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
           <div className="flex">
             <div className="p-3 flex-grow">
-              <Link href={`/recipe/${recipe._id}`} className="text-lg font-semibold hover:text-blue-600 transition-colors duration-200">
+              <Link href={`/recipe/${recipe._id}`} className="text-lg font-semibold hover:text-blue-600 dark:text-white dark:hover:text-blue-400 transition-colors duration-200">
                 {recipe.title}
               </Link>
-              <div className="mt-2 flex items-center text-xs text-gray-500 space-x-3">
+              <div className="mt-2 flex items-center text-xs text-gray-500 dark:text-gray-400 space-x-3">
                 <div className="flex items-center">
                   <Clock size={14} className="mr-1" />
                   <span>{recipe.cook_time} mins</span>
@@ -48,7 +48,7 @@ export default function RecipeList({ recipes }: RecipeListProps) {
                   height={20} 
                   className="rounded-full"
                 />
-                <span className="ml-1 text-xs font-medium text-gray-700">{recipe.user.name}</span>
+                <span className="ml-1 text-xs font-medium text-gray-700 dark:text-gray-300">{recipe.user.name}</span>
               </div>
             </div>
             <div className="w-1/3 relative">
@@ -59,10 +59,10 @@ export default function RecipeList({ recipes }: RecipeListProps) {
                 objectFit="cover"
               />
               <button 
-                className="absolute top-1 right-1 p-1 bg-white bg-opacity-75 rounded-full hover:bg-opacity-100 transition-all duration-200"
+                className="absolute top-1 right-1 p-1 bg-white dark:bg-gray-800 bg-opacity-75 dark:bg-opacity-75 rounded-full hover:bg-opacity-100 dark:hover:bg-opacity-100 transition-all duration-200"
                 aria-label="Save recipe"
               >
-                <Bookmark size={16} className="text-gray-700" />
+                <Bookmark size={16} className="text-gray-700 dark:text-gray-300" />
               </button>
             </div>
           </div>

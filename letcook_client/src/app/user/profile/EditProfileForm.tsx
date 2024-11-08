@@ -6,12 +6,12 @@ import { useContext, useEffect } from "react";
 import { ToggleContext } from "@/components/interactive-overlay";
 import { useToast } from "@/components/ui/use-toast";
 import useProfile from "@/hooks/useProfile";
-import { updateProfile } from "@/services/user.service";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { updateUserProfile } from "@/services/user.service";
 
 //schema
 const userSchema = z.object({
@@ -29,8 +29,8 @@ const userSchema = z.object({
 type FormValues = z.infer<typeof userSchema>;
 
 
-export default function EditProfileForm({ userId }: { userId: string }) {
-    const { profile, isLoading, error } = useProfile(userId);
+export default function EditProfileForm({ token }: { token: string }) {
+    const { profile, isLoading, error } = useProfile(token);
     const { setIsOpen: setIsOverlayOpen } = useContext(ToggleContext);
     const { toast } = useToast();
 
@@ -57,7 +57,7 @@ export default function EditProfileForm({ userId }: { userId: string }) {
 
     const onSubmit = async (data: FormValues) => {
         try {
-            const response = await updateProfile(userId, data);
+            const response = await updateUserProfile(token, data);
             toast({
                 title: "Profile updated",
                 description: "Your profile has been successfully updated.",

@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import BreadcrumbTitle from '../component/Breadcrumb';
 import { createColumns } from './columns';
 import { DataTable } from './data-table';
+import React from 'react';
 export default function Post() {
   const [data, setData] = useState<any[]>([]);
   useEffect(() => {

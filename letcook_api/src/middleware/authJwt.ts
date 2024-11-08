@@ -3,6 +3,7 @@ import jwt, { JsonWebTokenError, JwtPayload } from 'jsonwebtoken';
 //env
 import { UserRole } from '@/@types/user.d';
 import env from '@/util/validateEnv';
+import { Logger } from '@/util/logger';
 
 const { TokenExpiredError } = jwt;
 
@@ -13,33 +14,33 @@ const catchError = (res: Response, error: JsonWebTokenError) => {
     return res.status(401).json({ message: 'Unauthorized: Invalid token' });
   }
 };
-// verìfy token
+
 const verifyToken = (
-  req: RequestWithUser,
+  req: Request,
   res: Response,
-  next: NextFunction,
-) => {
-  const token = req.headers['x-access-token'] as string;
-  console.log('Token:', token);
+  next: NextFunction
+): void => {
+  const token = req.headers['authorization']?.split(' ')[1];
   if (!token) {
-    return res.status(403).send({ message: 'No token provided!' });
+    Logger.warn('No token provided');
+    res.status(403).json({ message: 'No token provided' });
+    return;
   }
 
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
-
-    if (decoded && typeof decoded === 'object') {
-      req.user = { id: decoded.id, role: decoded.role };
-
-      next();
-    } else {
-      return res.status(401).send({ message: 'Invalid token!' });
-    }
+    req.user = { id: decoded.id, role: decoded.role };
+    next();
   } catch (err) {
-    if (err instanceof JsonWebTokenError) {
-      return catchError(res, err);
+    if (err instanceof jwt.TokenExpiredError) {
+      Logger.warn(`Token expired for user ${(err as jwt.TokenExpiredError).expiredAt}`);
+      res.status(401).json({ message: 'Token expired' });
+    } else if (err instanceof jwt.JsonWebTokenError) {
+      Logger.warn(`Invalid token: ${err.message}`);
+      res.status(401).json({ message: 'Invalid token' });
     } else {
-      return res.status(500).send({ message: 'Internal server error!' });
+      Logger.error(`Failed to authenticate token: ${err}`);
+      res.status(500).json({ message: 'Failed to authenticate token' });
     }
   }
 };
@@ -62,7 +63,6 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
   console.log('Authenticating JWT');
   const token = req.cookies.accessToken;
 
-  console.log('Token:', token);
   if (!token) {
     return res.status(401).json({ message: 'Access token not found' });
   }
@@ -86,23 +86,36 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    return res.status(401).json({ message: 'Unauthorized: No token provided' });
+     res.status(401).json({ message: 'Unauthorized: No token provided' });
   }
-  const parts = authHeader.split(' ');
+  const parts = authHeader!.split(' ');
   if (parts.length !== 2) {
-    return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+     res.status(401).json({ message: 'Unauthorized: Invalid token' });
   }
   const [scheme, token] = parts;
   if (!/^Bearer$/i.test(scheme)) {
-    return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+     res.status(401).json({ message: 'Unauthorized: Invalid token' });
   }
   jwt.verify(token, env.JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+       res.status(401).json({ message: 'Unauthorized: Invalid token' });
     }
     req.user = decoded;
     next();
   });
 };
 
-export { authenticateJWT, isValidRole, requireAuth, verifyToken };
+const checkRole = (roles: string[]) => {
+  return (req: RequestWithUser, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      res.status(403).json({ message: 'No user found!' });
+    }
+    if (roles.includes(req.user.role)) {
+      next();
+    } else {
+      res.status(403).json({ message: 'Unauthorized: Insufficient role!' });
+    }
+  };
+};
+
+export { authenticateJWT, isValidRole, requireAuth, verifyToken, checkRole };

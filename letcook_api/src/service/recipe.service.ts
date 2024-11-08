@@ -1,5 +1,5 @@
 import { MongoDataSource } from "@/config/db.config.ts";
-import { Recipe, RecipeComment, RecipeReaction, RecipeTag } from "@/entity/recipe.entity.ts";
+import { Recipe, RecipeComment, RecipeReaction, RecipeReport, RecipeTag } from "@/entity/recipe.entity.ts";
 import UserService from "@/service/user.service";
 import { Step } from "@/entity/recipeStep.entity.ts";
 import { Ingredient } from "@/entity/ingredient.entity.ts";
@@ -7,12 +7,28 @@ import { plainToInstance } from "class-transformer";
 import { validateOrReject } from "class-validator";
 import { ObjectId } from "mongodb";
 import { notificationService } from "@/config/socket.config";
+import { normalize as normalizeVietnamese } from 'normalize-diacritics';
 
 import env from "@/util/validateEnv";
 import { Favorite } from "@/entity/favourite.entity";
 import handleError from "@/util/handleError";
 import { FavoriteService } from './favourite.service';
-import { In } from "typeorm";
+import { In, MongoRepository, ObjectLiteral } from "typeorm";
+import { log } from "console";
+import { ObjectIdLike } from "bson";
+import { formatMonthName, getMonthRange } from "@/util/date";
+
+// Updated type definitions
+interface RecipeWithDetails extends Omit<Recipe, 'steps' | 'ingredients'> {
+  steps: Step[];
+  ingredients: Ingredient[];
+  user: {
+    id: string;
+    name: string;
+    avatar: string;
+  } | null;
+  searchScore: number;
+}
 
 export default class RecipeService {
   private recipeRepository = MongoDataSource.getRepository(Recipe);
@@ -21,6 +37,7 @@ export default class RecipeService {
   private recipeTagRepository = MongoDataSource.getRepository(RecipeTag);
   private recipeCommentRepository = MongoDataSource.getRepository(RecipeComment);
   private reacipeReactionRepository = MongoDataSource.getRepository(RecipeReaction);
+  private recipeReportRepository = MongoDataSource.getRepository(RecipeReport);
   private UserService = new UserService();
   private favoriteService = new FavoriteService();
 
@@ -37,12 +54,41 @@ export default class RecipeService {
   /**
    * Get all recipes
    * */
-  async getAll(): Promise<Recipe[]> {
-    return await this.recipeRepository.find({
-      order: {
-        createdAt: "DESC",
-      },
-    });
+  async getAll(): Promise<any> {
+    const recipesData = await this.recipeRepository.find();
+    const recipeDetails = await Promise.all(
+      recipesData.map(async (recipe: Recipe) => {
+        const steps = await this.stepRepository.find({
+          where: {
+            _id: { $in: recipe.steps },
+          },
+        } as any);
+        const ingredients = await this.ingredientRepository.find({
+          where: {
+            _id: { $in: recipe.ingredients },
+          },
+        } as any);
+        const _user = await this.UserService.findUserById(recipe.userId!);
+        const user = _user
+          ? {
+            id: _user.id,
+            name: _user.username,
+            avatar: _user.avatar,
+          }
+          : {
+            id: undefined,
+            name: undefined,
+            avatar: undefined,
+          };
+        return {
+          ...recipe,
+          steps,
+          ingredients,
+          user,
+        };
+      }),
+    );
+    return { recipes: recipeDetails };
   }
 
   /**
@@ -56,9 +102,9 @@ export default class RecipeService {
       },
     };
     isPublic && (query.isPublished = isPublic);
+    query.isActivate = true;
     skip && (options.skip = skip);
     take && (options.take = take);
-    // query.isActivate = true;
     const [recipes, total] = await this.recipeRepository.findAndCount({
       where: query,
       ...options,
@@ -95,6 +141,8 @@ export default class RecipeService {
         };
       }),
     );
+    console.log("recipeDetails", recipeDetails);
+    console.log("total", total);
     return { recipes: recipeDetails, total };
   }
   /*
@@ -301,7 +349,7 @@ export default class RecipeService {
       recipe.isActivate = active;
       recipe.isPublished = active;
       await this.recipeRepository.update({ _id: objectId }, recipe);
-      const updatedRecipe = await this.getRecipeById(id);
+      const updatedRecipe = await this.getRecipeById(id, false);
 
       if (!active) {
         await notificationService.createNotification({
@@ -319,6 +367,19 @@ export default class RecipeService {
           createdAt: new Date(),
         });
 
+        //notify to followers
+        const followers = await this.UserService.getListUserFollowers(recipe.userId!);
+        console.log("followers", followers);
+        for (const follower of followers) {
+          console.log("follower", follower);
+          await notificationService.createNotification({
+            userId: follower.id,
+            title: "Your follower has a new recipe",
+            content: `${recipe.title}`,
+            createdAt: new Date(),
+          });
+        }
+
       }
 
       return updatedRecipe;
@@ -332,7 +393,7 @@ export default class RecipeService {
     }
   }
 
-  async getRecipeById(id: string): Promise<any> {
+  async getRecipeById(id: string, filterActive: boolean = true): Promise<any> {
     if (!ObjectId.isValid(id)) {
       throw new Error("Invalid ID");
     }
@@ -342,6 +403,10 @@ export default class RecipeService {
 
     if (!recipe) {
       throw new Error("Recipe not found");
+    }
+
+    if (!recipe.isActivate && filterActive) {
+      throw new Error("Recipe is not active");
     }
 
     const steps = await this.stepRepository.find({
@@ -471,91 +536,238 @@ export default class RecipeService {
     return this.getRecipeById(recipeId);
   }
 
+  private synonymMap: { [key: string]: string[] } = {
+    'ngô': ['bắp'],
+    'bắp': ['ngô'],
+    'heo': ['lợn'],
+    'lợn': ['heo'],
+    'dưa leo': ['dưa chuột'],
+    'dưa chuột': ['dưa leo'],
+    'đậu phộng': ['lạc'],
+    'lạc': ['đậu phộng'],
+  };
 
-  async searchRecipes(query: string, tags: string[], ingredients: string[], skip?: number, take?: number): Promise<any> {
-    const searchQuery: any = {
-      $or: [
-        { title: { $regex: `.*${query}.*`, $options: 'i' } },
-        { description: { $regex: `.*${query}.*`, $options: 'i' } },
-      ],
-      isPublished: true // Ensure only published recipes are returned
+  /*
+  searchWords: [
+  "món cay", "nguyên liệu cay", "ớt", "món Thái", "món Ấn Độ",
+  "món cay", "nguyên liệu cay", "ớt", "món Thái", "món Ấn Độ",
+  "món Hàn Quốc", "lẩu cay", "cà ri cay", "ớt đỏ", "tiêu", "cay xé lưỡi",
+  "xào cay", "canh cay", "măng ớt", "gà cay"
+],
+  */
 
+async searchRecipes(
+  query: string[],
+  ingredients: string[], // list recipe search keyword
+  skip?: number,
+  take?: number
+): Promise<{ recipes: any[], total: number }> {
+  console.log("query", query);
+  console.log("ingredients", ingredients);
+
+  // First get ingredient IDs for the query terms with case-insensitive and partial matching
+  const queryIngredientIds = await this.ingredientRepository.find({
+    where: {
+      $or: query.map(q => ({
+        name: { $regex: `.*${this.escapeRegExp(q)}.*`, $options: 'i' }
+      }))
+    } as any
+  }).then(ingredients => ingredients.map(ingredient => ingredient._id));
+
+  // Build the search query for title, description, tags, and ingredients
+  const searchQuery = {
+    $or: [
+      ...query.map(q => ({
+        $or: [
+          { title: { $regex: `.*${this.escapeRegExp(q)}.*`, $options: 'i' } },
+          { description: { $regex: `.*${this.escapeRegExp(q)}.*`, $options: 'i' } },
+          { 'tags.name': { $regex: `.*${this.escapeRegExp(q)}.*`, $options: 'i' } }
+        ]
+      })),
+      { ingredients: { $in: queryIngredientIds } }
+    ],
+    $and: [
+      { isActivate: true }
+    ]
+  };
+
+  console.log("searchQuery", searchQuery);
+
+  // Build the base query options
+  const options: any = {
+    where: searchQuery,
+
+  };
+
+  // Add pagination
+  if (skip !== undefined) options.skip = skip;
+  if (take !== undefined) options.take = take;
+
+  //filter recipe by ingredients
+  if(ingredients.length > 0){
+ 
+    // Get ingredient IDs for the ingredient filter with case-insensitive and partial matching
+    const ingredientIds = await this.ingredientRepository.find({
+      where: {
+        $or: ingredients.map(ing => ({
+          name: { $regex: `.*${this.escapeRegExp(ing)}.*`, $options: 'i' }
+        }))
+      } as any
+    }).then(ingredients => ingredients.map(ingredient => ingredient._id));
+
+
+    options.where = {
+      ...options.where,
+      ingredients: { $in: ingredientIds }
     };
+  
+  }
 
-    if (tags && tags.length > 0) {
-      searchQuery['tags.name'] = { $in: tags };
+  // Get recipes and total count
+  const [searchResult, total] = await this.recipeRepository.findAndCount(options);
+
+  
+
+  // Fetch additional details for each recipe
+  const recipeDetails = await Promise.all(
+    searchResult.map(async (recipe: Recipe) => {
+      // Fetch related data in parallel for better performance
+      const [steps, recipeIngredients, _user] = await Promise.all([
+        this.stepRepository.find({
+          where: { _id: { $in: recipe.steps } } as any,
+        }),
+        this.ingredientRepository.find({
+          where: { _id: { $in: recipe.ingredients } } as any,
+        }),
+        this.UserService.findUserById(recipe.userId!)
+      ]);
+
+      // Format user data
+      const user = _user ? {
+        id: _user.id,
+        name: _user.username,
+        avatar: _user.avatar,
+      } : {
+        id: undefined,
+        name: undefined,
+        avatar: undefined,
+      };
+
+      // Calculate search relevance score
+      const score = this.calculateSearchScore(recipe, recipeIngredients, query);
+
+      return {
+        ...recipe,
+        steps,
+        ingredients: recipeIngredients,
+        user,
+        score
+      };
+    })
+  );
+
+  // Sort by search relevance score
+  const sortedRecipes = recipeDetails.sort((a, b) => b.score - a.score);
+
+  // Return recipes with the updated total count
+  return { 
+    recipes: sortedRecipes, 
+    total: ingredients.length > 0 ? searchResult.length : total 
+  };
+}
+
+// Helper method to calculate search relevance score
+private calculateSearchScore(
+  recipe: Recipe,
+  ingredients: any[],
+  searchWords: string[]
+): number {
+  let score = 0;
+
+  for (const word of searchWords) {
+    const wordRegex = new RegExp(this.escapeRegExp(word), 'i');
+
+    // Title matches (highest weight)
+    if (wordRegex.test(recipe.title)) {
+      score += 10;
     }
 
+    // Description matches
+    if (wordRegex.test(recipe.description)) {
+      score += 5;
+    }
 
-    const optionsIngredients = {
-      where: { name: { $in: ingredients.map(ingredient => new RegExp(ingredient, 'i')) } },
-    } as any;
+    // Tag matches
+    if (recipe.tags?.some(tag => wordRegex.test(tag.name))) {
+      score += 4;
+    }
 
+    // Ingredient matches
+    for (const ingredient of ingredients) {
+      if (wordRegex.test(ingredient.name)) {
+        score += 3;
+      }
+    }
+  }
 
+  return score;
+}
 
-    if (ingredients && ingredients.length > 0) {
-      const ingredientEntities = await this.ingredientRepository.find({
-        ...optionsIngredients,
-        select: ['_id']
+// Helper method to escape special regex characters
+private escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+  private calculateEnhancedSearchScore(
+    recipe: Recipe,
+    ingredients: Ingredient[],
+    searchPatterns: RegExp[],
+    ingredientWords: string[]
+  ): number {
+    let score = 0;
+
+    // Score for title matches
+    searchPatterns.forEach(pattern => {
+      if (pattern.test(recipe.title)) score += 3;
+      if (pattern.test(recipe.description)) score += 2;
+    });
+
+    // Enhanced ingredient scoring
+    ingredients.forEach(ingredient => {
+      const ingredientName = ingredient.name?.toLowerCase() || '';
+
+      // Score for exact ingredient matches
+      ingredientWords.forEach(word => {
+        if (ingredientName.includes(word)) {
+          score += 2; // Higher score for ingredient matches
+        }
       });
 
-      const ingredientIds = ingredientEntities.map(ing => ing._id);
-      searchQuery.ingredients = { $in: ingredientIds };
-    }
+      // Additional score for partial matches
+      searchPatterns.forEach(pattern => {
+        if (pattern.test(ingredientName)) {
+          score += 1;
+        }
+      });
+    });
 
+    // Bonus score for matching multiple search terms
+    const uniqueMatches = new Set();
+    searchPatterns.forEach(pattern => {
+      if (pattern.test(recipe.title) ||
+        pattern.test(recipe.description) ||
+        ingredients.some(ing => pattern.test(ing.name || ''))) {
+        uniqueMatches.add(pattern.source);
+      }
+    });
 
-    const options: any = {
-      order: {
-        createdAt: "DESC",
-      },
-      where: searchQuery
-    };
+    // Bonus points for matching multiple terms
+    score += uniqueMatches.size * 0.5;
 
-    skip && (options.skip = skip);
-    take && (options.take = take);
-
-
-    const [recipes, total] = await this.recipeRepository.findAndCount(options);
-
-    console.log('options', options);
-
-    const recipeDetails = await Promise.all(
-      recipes.map(async (recipe: Recipe) => {
-        const steps = await this.stepRepository.find({
-          where: {
-            _id: { $in: recipe.steps },
-          },
-        } as any);
-        const ingredients = await this.ingredientRepository.find({
-          where: {
-            _id: { $in: recipe.ingredients },
-          },
-        } as any);
-        const _user = await this.UserService.findUserById(recipe.userId!);
-        const user = _user
-          ? {
-            id: _user.id,
-            name: _user.username,
-            avatar: _user.avatar,
-          }
-          : {
-            id: undefined,
-            name: undefined,
-            avatar: undefined,
-          };
-        return {
-          ...recipe,
-          steps,
-          ingredients,
-          user,
-        };
-      }),
-    );
-
-    console.log(recipeDetails, 'recipeDetails');
-
-    return { recipes: recipeDetails, total };
+    return score;
   }
+
+
 
   async addComment(
     recipeId: string,
@@ -684,29 +896,29 @@ export default class RecipeService {
     };
   }
 
-  async getRecipeWithUser(recipe : Recipe) {
+  async getRecipeWithUser(recipe: Recipe) {
     const { userId, ...recipeWithoutUserId } = recipe;
     const user = await this.UserService.findUserById(userId!);
     if (user) {
-        return {
-            ...recipeWithoutUserId,
-            user: {
-                id: user.id,
-                username: user.username,
-                avatar: user.avatar,
-            },
-        };
+      return {
+        ...recipeWithoutUserId,
+        user: {
+          id: user.id,
+          username: user.username,
+          avatar: user.avatar,
+        },
+      };
     } else {
-        return {
-            ...recipeWithoutUserId,
-            user: {
-                id: undefined,
-                username: undefined,
-                avatar: undefined,
-            },
-        };
+      return {
+        ...recipeWithoutUserId,
+        user: {
+          id: undefined,
+          username: undefined,
+          avatar: undefined,
+        },
+      };
     }
-}
+  }
 
   async getRecipesWithUserId(userid?: string) {
 
@@ -724,7 +936,7 @@ export default class RecipeService {
     });
     const recipeWithUser = await Promise.all(
       recipes.map(recipe => this.getRecipeWithUser(recipe))
-  );
+    );
     return recipeWithUser;
   }
 
@@ -734,7 +946,7 @@ export default class RecipeService {
       if (!favoritesIds || favoritesIds.length === 0) {
         return [];
       }
-      const options =  { 
+      const options = {
         where: {
           _id: { $in: favoritesIds.map(id => new ObjectId(id)) },
         } as any
@@ -743,15 +955,15 @@ export default class RecipeService {
       const recipes = await this.recipeRepository.find(
         options
       );
-  
+
       console.log('recipes', recipes);
       console.log('favoritesIds', favoritesIds);
-  
+
       // Optionally, you can add user information to each recipe
       const recipesWithUser = await Promise.all(
         recipes.map(async (recipe) => this.getRecipeWithUser(recipe))
       );
-  
+
       return recipesWithUser;
     } catch (error) {
       console.error("Error getting user favorites:", error);
@@ -759,7 +971,159 @@ export default class RecipeService {
       return []; // Return an empty array in case of error
     }
   }
-  
+
+
+  async reportRecipe(recipeId: string, userId: string, report: string) {
+    try {
+
+      const recipe = await this.recipeRepository.findOne({
+        where: { _id: new ObjectId(recipeId) },
+      });
+
+      const user = await this.UserService.findUserById(userId);
+
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      if (!recipe) {
+        throw new Error('Recipe not found');
+      }
+
+      const existingReport = await this.recipeReportRepository.findOne({
+        where: { recipeId: new ObjectId(recipeId), userId },
+      });
+
+      const reportRecipe = new RecipeReport();
+      reportRecipe.recipeId = new ObjectId(recipeId);
+      reportRecipe.userId = userId;
+      reportRecipe.report = report;
+
+      if (existingReport) {
+        throw new Error('You have already reported this recipe');
+      }
+
+      await this.recipeReportRepository.save(reportRecipe);
+
+      return reportRecipe;
+    } catch (error) {
+      handleError(error as Error, "Error reporting recipe");
+    }
+  }
+
+  async getAllReportedRecipes() {
+    try {
+      const reportAggregation = await this.recipeReportRepository.aggregate([
+        {
+          $group: {
+            _id: "$recipeId",  // Group by recipeId
+            reportCount: { $sum: 1 }, // Count the number of reports
+          },
+        },
+      ]).toArray();
+
+      const recipeIds = reportAggregation.map(report => new ObjectId(report._id));
+
+      console.log('recipeIds:', recipeIds);
+
+      const recipes = await this.recipeRepository.find({
+        where: {
+          _id: { $in: recipeIds },
+          isActivate: true,
+        },
+      });
+
+      console.log('found recipes:', recipes);
+
+      // Map reports and recipes to create the final output
+      const reportsWithTitles = reportAggregation
+        .map(report => {
+          const recipe = recipes.find(r => r._id.equals(new ObjectId(report._id)));
+          if (recipe) {
+            return {
+              recipeId: report._id,
+              title: recipe.title,
+              reportCount: report.reportCount,
+            };
+          }
+          return null;
+        })
+        .filter(report => report !== null); // Remove null entries (blocked recipes)
+
+      return reportsWithTitles;
+    } catch (error) {
+      handleError(error as Error, "Error getting reported recipes");
+      throw new Error("Error fetching reported recipes");
+    }
+  }
+
+  async getReportByRecipeId(recipeId: string) {
+    try {
+      const report = await this.recipeReportRepository.findOne({
+        where: { recipeId: new ObjectId(recipeId) },
+      });
+      return report;
+    } catch (error) {
+      handleError(error as Error, "Error getting report by recipe id");
+    }
+  }
+
+  async blockRecipe(recipeId: string) {
+    try {
+      const recipe = await this.recipeRepository.findOne({
+        where: { _id: new ObjectId(recipeId) },
+      });
+
+      if (recipe) {
+        recipe.isActivate = false;
+        recipe.isPublished = false;
+        await this.recipeRepository.update(new ObjectId(recipeId), { isActivate: false });
+        await this.recipeReportRepository.delete({ recipeId: new ObjectId(recipeId) });
+      } else {
+        throw new Error("Recipe not found");
+      }
+
+      return recipe;
+    } catch (error) {
+      handleError(error as Error, "Error blocking recipe");
+    }
+  }
+
+  async countRecipesToCheck(): Promise<number> {
+    const [, count] = await this.recipeRepository.findAndCount({
+      where: { isActivate: false },
+    });
+    return count;
+  }
+
+  async countRecipesByMonth() {
+    try {
+      const currentDate = new Date();
+      const year = currentDate.getFullYear();
+      const recipeCounts = [];
+
+      for (let i = 4; i >= 0; i--) {
+        const { start, end } = getMonthRange(year, currentDate.getMonth() - i);
+        const count = await (this.recipeRepository as unknown as MongoRepository<ObjectLiteral>).count({
+          $expr: {
+            $and: [
+              { $gte: ["$createdAt", start] },
+              { $lte: ["$createdAt", end] },
+            ],
+          } as any,
+        });
+        recipeCounts.push(count);
+      }
+
+      const data = recipeCounts.map((count, index) => ({
+        month: formatMonthName(currentDate.getMonth() - 4 + index),
+        recipes: count,
+      }));
+      return data;
+    } catch (error) {
+      throw new Error("Failed to get recipe data");
+    }
+  }
 
 
 }

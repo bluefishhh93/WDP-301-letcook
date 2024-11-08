@@ -7,6 +7,7 @@ import cors from "cors";
 import express from "express";
 import passport from "passport";
 import path from "path";
+import server from "./socket.config";
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(
     credentials: true,
   }),
 );
+
 
 // app.use(
 //   session({

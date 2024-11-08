@@ -12,7 +12,7 @@ async function refreshToken(expired: string) {
   // }
 }
 
-const authOptions: AuthOptions = {
+export const authOptions: AuthOptions = {
   secret: process.env.SECRET,
   providers: [
     Google({

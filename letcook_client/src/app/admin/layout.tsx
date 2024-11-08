@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import AdminWrapper from '@/components/AdminWrapper';
 import { useSidebarToggle } from '@/hooks/useSideBarToggle';
 import { cn } from '@/lib/utils';

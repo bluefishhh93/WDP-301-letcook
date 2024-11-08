@@ -113,7 +113,7 @@ export default function CheckoutForm({ cart, totalPrice }: CheckoutFormProps) {
           router.push('/orderSuccess');
         }
       } else if (formData.paymentMethod === "vnpay") {
-        const vnpayUrl = await CheckoutService.createVNPayUrl(totalPrice);
+        const vnpayUrl = await CheckoutService.createVNPayUrl(totalPrice + (shippingFee || 0));
         if (vnpayUrl && typeof window !== 'undefined') {
           window.location.href = vnpayUrl;
         }

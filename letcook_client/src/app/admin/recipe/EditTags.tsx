@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -68,7 +69,7 @@ export default function EditTags({
       setValue('');
     }
   };
-  
+
   const onSubmit = async (data: any) => {
     try {
       const res = await axios.post(`/api/recipe/tag/${recipeId}`, data);
@@ -83,11 +84,14 @@ export default function EditTags({
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger className="w-full hover:bg-secondary pl-2 rounded text-sm h-8 flex items-center justify-start">
-          Edit tags
+          <div>
+            Edit tags
+          </div>
         </DialogTrigger>
         <DialogContent className="min-h-72 max-h-full">
           <DialogHeader>
             <DialogTitle>Edit Tags</DialogTitle>
+            <DialogDescription> </DialogDescription>
           </DialogHeader>
           <Form {...tagsForm}>
             <form

@@ -12,12 +12,20 @@ import { Ingredient, Recipe } from 'CustomTypes';
 import RecipeIngredientsDialog from './PreviewDialog/RecipeIngredientsDialog';
 import { getPublicRecipes } from '@/services/recipe.service';
 import { on } from 'events';
+import useAuth from '@/hooks/useAuth';
+import { callApi } from '@/utils/callApi';
 export default function RecipePage() {
   const [data, setData] = useState<any[]>([]);  
+  const { user } = useAuth();
 
   const handleAction = async (id: string, action: 'accept' | 'reject', feedback: string) => {
     try {
-      const response = await axios.post(`/api/recipe/${id}/${action}`, { feedback });
+      const response = await callApi({
+        url: `/api/recipe/${id}/${action}`,
+        method: 'POST',
+        body: { feedback },
+        token: user?.accessToken,
+      });
       const updatedRecipe = response.data; // Assuming the updated recipe is returned in the response data
 
       // Update the recipes state with the updated recipe
@@ -40,7 +48,7 @@ export default function RecipePage() {
   useEffect(() => {
     const fetching = async () => {
       try {
-        const res = await axios.get('/api/recipe');
+        const res = await axios.get('/api/recipe/all');
         setData(res.data.recipes); // Adjusted to match the backend response structure
       } catch (error) {
         console.error('Error fetching recipes:', error);

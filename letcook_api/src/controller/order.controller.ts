@@ -84,23 +84,27 @@ export default class OrderController extends BaseController<Order> {
     }
   }
 
-  async updateOrderStatus(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
+  async updateOrder(req: Request, res: Response, next: NextFunction): Promise<void> {
     const orderId = req.params.id;
-    const { status, reason } = req.body;
-
+    const updateData = req.body.updateData;
+    const status = req.body.status;
+  
     try {
-      const order = await this.orderService.updateOrderStatus(
-        parseInt(orderId),
-        status,
-        reason
-      );
+      let order;
+  
+      if ('status' === updateData) {
+        order = await this.orderService.updateOrderStatus(parseInt(orderId), status, updateData.reason);
+      } else if ('paymentStatus' === updateData) {
+        order = await this.orderService.updatePaymentStatus(parseInt(orderId), status);
+      } else if ('shippingStatus' === updateData) {
+        order = await this.orderService.updateShippingStatus(parseInt(orderId), status);
+      } else {
+        throw new Error('Invalid update data');
+      }
+  
       res.status(200).json(this.transformOrderData(order));
     } catch (error) {
-      Logger.error("Failed to update order status", error);
+      Logger.error("Failed to update order", error);
       next(error);
     }
   }

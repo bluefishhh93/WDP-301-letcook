@@ -91,7 +91,7 @@ export const createColumns = (renderPreviewDialog: (recipe: Recipe) => React.Rea
     },
   },
   {
-    accessorKey: '_id',
+    accessorKey: 'preview',
     header: 'Preview',
     cell: ({ row }) => {
       const recipe = row.original;
@@ -99,7 +99,7 @@ export const createColumns = (renderPreviewDialog: (recipe: Recipe) => React.Rea
     },
   }, 
   {
-    accessorKey: '_id',
+    accessorKey: 'products',
     header: 'Products',
     cell: ({ row }) => {
       const recipe = row.original;
