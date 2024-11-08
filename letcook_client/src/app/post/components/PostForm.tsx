@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +19,7 @@ import { toast } from 'react-toastify';
 import axios from '@/lib/axios';
 import { User, UserInfo } from 'CustomTypes';
 import { ImageUploader } from '@/utils/image-upload';
+import { io } from 'socket.io-client';
 
 const Editor = dynamic(() => import('@/components/Editor'), { ssr: false });
 
@@ -32,6 +33,8 @@ interface FormValues {
 interface FormPostProps {
   user: User & UserInfo;
 }
+
+const socket = io('http://localhost:3000'); // Thay 'your-server-url' bằng URL của server
 
 export default function FormPost({ user }: FormPostProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,13 +54,28 @@ export default function FormPost({ user }: FormPostProps) {
     try {
       data.userId = user.id;
       data.image = imageUrl;
+
       const res = await axios.post('/api/post', data);
       if (res.status === 201) {
         toast.success('Post successfully added');
         form.reset();
         setImageUrl('');
+
+        // Gửi thông báo đến những người theo dõi qua socket
+        const notificationData = {
+          userId: user.id,
+          title: 'New Post Created',
+          content: `Your friend has created a new post: "${data.title}"`,
+          postId: res.data.post._id,
+        };
+        console.log("notification", notificationData);
+
+        // Gửi thông báo qua socket
+        socket.emit('createNotification', notificationData);
+        toast.success('Notification sent to followers');
       }
     } catch (error) {
+      console.error(error);
       toast.error('Error adding post');
     } finally {
       setIsSubmitting(false);
@@ -68,6 +86,21 @@ export default function FormPost({ user }: FormPostProps) {
     setImageUrl(url);
     form.setValue('image', url);
   };
+
+  useEffect(() => {
+    // Đăng ký người dùng
+    socket.emit('register', user.id);
+
+    // Xử lý thông báo khi được tạo
+    socket.on('notificationCreated', (notification) => {
+      console.log('Notification created:', notification);
+    });
+
+    // Cleanup: Ngắt kết nối khi component unmount
+    return () => {
+      socket.disconnect();
+    };
+  }, [user.id]);
 
   return (
     <Form {...form}>

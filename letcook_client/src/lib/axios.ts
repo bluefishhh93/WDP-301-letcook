@@ -15,5 +15,6 @@ export function axiosWithAuth(token: string) {
       'Content-type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
+    withCredentials: true,
   });
 }

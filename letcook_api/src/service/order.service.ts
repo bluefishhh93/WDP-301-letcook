@@ -184,6 +184,42 @@ export class OrderService extends BaseService<Order> {
     }
   }
 
+  async updateShippingStatus(orderId: number, shippingStatus: string) {
+    const SHIPPING_STATUS = ['pending', 'shipping', 'completed', 'cancelled'];
+
+    if(!SHIPPING_STATUS.includes(shippingStatus)){
+      throw new Error('Invalid shipping status');
+    }
+
+    const order = await this.repository.findOneBy({id: orderId});
+    if(!order){
+      throw new Error('Order not found');
+    }
+    order.shippingStatus = shippingStatus;
+    await order.save();
+    return order;
+  }
+
+  async updatePaymentStatus(orderId: number, paymentStatus: string) {
+    const PAYMENT_STATUS = ['pending', 'paid', 'failed', 'refunded'];
+
+    if(!PAYMENT_STATUS.includes(paymentStatus)){
+      throw new Error('Invalid payment status');
+    }
+
+    
+
+    const order = await this.repository.findOneBy({id: orderId})
+    ;
+    if(!order){
+      throw new Error('Order not found');
+    }
+    order.paymentStatus = paymentStatus;
+    await order.save();
+
+    return order;
+  }
+
   async updateOrderStatus(orderId: number, status: string, reason?: string) {
     const ALLOWED_STATUSES = [
       "shipping",
@@ -225,6 +261,13 @@ export class OrderService extends BaseService<Order> {
         product!.currentQuantity += item.quantity;
         await product!.save();
       }
+    }
+
+    //complete order
+    if(status === 'completed'){
+      order.shippingStatus = 'completed';
+      order.paymentStatus = 'paid';
+      await order.save();
     }
 
     const notificationTitle = `Cập nhật đơn hàng #${order.id}`;

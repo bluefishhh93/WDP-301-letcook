@@ -42,5 +42,7 @@ export default cleanEnv(process.env, {
   VNPAY_RETURN_URL: str(),
   VNPAY_URL: str(),
   VNPAY_API: str(),
+  LOCAL_POSTGRES: str(),
+  LOCAL_MONGO: str(), 
 
 });

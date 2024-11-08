@@ -1,3 +1,4 @@
+"use client";
 import { Button } from '@/components/ui/button';
 
 interface PaginationProps {
@@ -19,7 +20,7 @@ export default function Pagination({
     <div className="flex justify-center space-x-2 mt-4">
       <Button
         onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
+        disabled={currentPage === 1 || totalPages === 0}
       >
         Previous
       </Button>
@@ -28,7 +29,7 @@ export default function Pagination({
       </span>
       <Button
         onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
+        disabled={currentPage === totalPages || totalPages === 0}
       >
         Next
       </Button>

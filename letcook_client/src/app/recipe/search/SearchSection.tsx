@@ -4,26 +4,26 @@ import { Button } from '@/components/ui/button';
 import { Search, Plus, X, Utensils } from 'lucide-react';
 
 interface SearchSectionProps {
-  searchQuery: string;
-  onSearch: (query: string) => void;
+  // searchQuery: string;
+  onSearch: () => void;
   ingredients: string[];
   onAddIngredient: (ingredient: string) => void;
   onRemoveIngredient: (ingredient: string) => void;
 }
 
 export default function SearchSection({
-  searchQuery,
+  // searchQuery,
   onSearch,
   ingredients,
   onAddIngredient,
   onRemoveIngredient
 }: SearchSectionProps) {
-  const [query, setQuery] = useState(searchQuery);
+  // const [query, setQuery] = useState(searchQuery);
   const [ingredient, setIngredient] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch(query);
+    onSearch();
   };
 
   const handleAddIngredient = () => {
@@ -48,16 +48,16 @@ export default function SearchSection({
       </div>
 
       <form onSubmit={handleSearch} className="relative mb-4">
-        <Input
+        {/* <Input
           type="search"
           placeholder="Search recipes..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="pr-10 rounded-md border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-500"
-        />
-        <Button type="submit" className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md transition-colors duration-200">
+        /> */}
+        {/* <Button type="submit" className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md transition-colors duration-200">
           <Search size={18} />
-        </Button>
+        </Button> */}
       </form>
 
       <div className="relative mb-6">

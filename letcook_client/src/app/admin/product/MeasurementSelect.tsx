@@ -16,7 +16,6 @@ const MeasurementSelect: React.FC<MeasurementSelectProps> = ({ value, onChange }
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/measurements`);
         const data = await response.json();
-        // console.log(data);
         setMeasurements(data);
       } catch (error) {
         console.error("Error fetching measuremtnws:", error);

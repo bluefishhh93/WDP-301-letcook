@@ -4,6 +4,7 @@ import UserService from "@/service/user.service";
 import PostService from "@/service/post.service";
 import { NextFunction, Request, Response } from "express";
 import {formatMonthName, getMonthRange} from '@/util/date';
+import RecipeService from "@/service/recipe.service";
 // import RecipeService from "@/service/recipe.service";
 
 export default class DashboardController {
@@ -11,12 +12,12 @@ export default class DashboardController {
   private userService: UserService;
   private orderService: OrderService;
   private postService: PostService;
-//   private recipeService: RecipeService;
+  private recipeService: RecipeService;
   constructor() {
     this.postService = new PostService();
     this.productService = new ProductService();
     this.userService = new UserService();
-    // this.recipeService = new RecipeService();
+    this.recipeService = new RecipeService();
     this.orderService = new OrderService(this.userService, this.productService);
   }
 
@@ -41,7 +42,7 @@ export default class DashboardController {
   ): Promise<void> {
     try {
       // const recipesToCheck = await this.recipeService.getRecipesToCheck();
-      const recipesToCheck = 2;
+      const recipesToCheck = await this.recipeService.countRecipesToCheck();
       const postsToCheck = await this.postService.countPostsToCheck();
       const pendingOrders = await this.orderService.countOrdersToCheck();
       const userCount = await this.userService.countUsers();
@@ -126,18 +127,9 @@ export default class DashboardController {
 
   async getRecipeData(req: Request, res: Response, next: NextFunction) {
     try {
-        const currentDate = new Date();
-        const year = currentDate.getFullYear();
-        const recipeCounts = [2,2,2,2,2];
-    
-       
-        const data = recipeCounts.map((count, index) => ({
-          month: formatMonthName(currentDate.getMonth() - 4 + index),
-          recipes: count,
-        }));
-    
-        res.status(200).json(data);
-      } catch (error) {
+      const data = await this.recipeService.countRecipesByMonth();
+      res.status(200).json(data);
+    } catch (error) {
         next(error);
       }
   }

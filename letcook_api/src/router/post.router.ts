@@ -1,4 +1,5 @@
 import PostController from "@/controller/post.controller";
+import { verifyToken } from "@/middleware/authJwt";
 import { Router } from "express";
 
 const router = Router();
@@ -7,6 +8,9 @@ router
   // .get('/post', postController.getListPost)
   .get("/post", postController.getPost)
   .post("/post", postController.createPost);
+
+router.get("/post/user/", verifyToken, postController.getPostsWithUserId);
+
 // .post('/post', upload('post', 'image'), postController.createPost);
 router.get("/post/all", postController.getAllPost);
 router.get("/post/tag", postController.getUniqueTags);
@@ -18,6 +22,6 @@ router
 router.delete("/post/:id", postController.deletePost);
 router.post("/post/comment", postController.addComment);
 router.post("/post/tag/:id", postController.addTags);
-router.get("/post/user/:userId", postController.getPostsWithUserId);
+
 
 export default router;

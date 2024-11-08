@@ -8,19 +8,19 @@ interface QuickFactsProps {
 const QuickFacts: React.FC<QuickFactsProps> = ({ recipe }) => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-      <div className="bg-muted rounded-lg p-4 text-center">
+      <div className="bg-white rounded-lg p-4 text-center dark:bg-slate-800">
         <p className="text-sm font-medium">Cook Time</p>
         <p className="text-lg font-bold">{recipe.cook_time} mins</p>
       </div>
-      <div className="bg-muted rounded-lg p-4 text-center">
+      <div className="bg-white rounded-lg p-4 text-center dark:bg-slate-800">
         <p className="text-sm font-medium">Servings</p>
         <p className="text-lg font-bold">{recipe.serving}</p>
       </div>
-      <div className="bg-muted rounded-lg p-4 text-center">
+      <div className="bg-white rounded-lg p-4 text-center dark:bg-slate-800">
         <p className="text-sm font-medium">Difficulty</p>
         <p className="text-lg font-bold">{recipe.difficulty}</p>
       </div>
-      <div className="bg-muted rounded-lg p-4 text-center">
+      <div className="bg-white rounded-lg p-4 text-center dark:bg-slate-800">
         <p className="text-sm font-medium">Ingredients</p>
         <p className="text-lg font-bold">{recipe.ingredients.length}</p>
       </div>

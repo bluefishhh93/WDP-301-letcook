@@ -52,7 +52,7 @@ export class Order extends BaseEntity {
   shipDate?: Date; 
 
   @Column()
-  paymentStatus?: string;
+  paymentStatus?: string; // pending, paid, failed, refunded
 
   @Column()
   shippingStatus?: string;

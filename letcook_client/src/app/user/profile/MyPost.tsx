@@ -11,6 +11,8 @@ interface PostsProps {
 }
 
 const MyPosts: React.FC<PostsProps> = ({ posts, onEdit, onDelete }) => {
+  console.log(posts);
+
   const handleEditPost = (post: PostType) => {
     const updatedTitle = prompt("Edit post title:", post.title);
     const updatedContent = prompt("Edit post content:", post.content);
@@ -42,7 +44,7 @@ const MyPosts: React.FC<PostsProps> = ({ posts, onEdit, onDelete }) => {
             </div>
             <CardContent className="p-4">
               <h3 className="text-lg font-bold text-foreground mb-2 line-clamp-1">{post.title}</h3>
-              <p className="text-sm text-muted-foreground line-clamp-2">{post.content}</p>
+              {/* <p className="text-sm text-muted-foreground line-clamp-2">{post.content}</p> */}
               <div className="mt-3 flex items-center text-xs text-muted-foreground">
                 <img src={post.user.avatar} alt={post.user.username} className="w-6 h-6 rounded-full mr-2" />
                 <span>{post.user.username}</span>
