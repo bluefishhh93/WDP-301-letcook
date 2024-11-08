@@ -23,6 +23,10 @@ export default class RecipeController {
           uploadToCloudinary(file, env.CLOUD_IMG_FOLDER_RECIPE),
         ),
       );
+      //add main image to steps
+      // steps.forEach((step, index) => {
+      //   step.images.push(mainImageUrls[index]);
+      // });
 
       const stepImageUploadPromises = files
         .filter((file) => file.fieldname.startsWith("steps["))
