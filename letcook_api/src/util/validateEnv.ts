@@ -36,6 +36,7 @@ export default cleanEnv(process.env, {
   CLOUD_IMG_FOLDER: str(),
   CLOUD_IMG_FOLDER_RATING: str(),
   CLOUD_IMG_FOLDER_RECIPE: str(),
+  CLOUD_VIDEO_FOLDER_RECIPE: str(),
 
   VNPAY_TMNCODE: str(),
   VNPAY_HASHSECRET: str(),

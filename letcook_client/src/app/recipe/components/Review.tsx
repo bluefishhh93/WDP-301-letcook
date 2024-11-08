@@ -16,6 +16,7 @@ interface ReviewProps {
   title: string;
   description: string;
   image: string | null;
+  video: string | null;
   ingredients: Ingredient[];
   steps: Step[];
   cookTime: number;
@@ -27,6 +28,7 @@ const Review: React.FC<ReviewProps> = ({
   title,
   description,
   image,
+  video,
   ingredients,
   steps,
   cookTime,
@@ -51,11 +53,33 @@ const Review: React.FC<ReviewProps> = ({
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-xl font-semibold text-amber-800 mb-4">{title}</h3>
         
-        {image && (
-          <div className="mb-4">
-            <Image src={image} alt={title} width={300} height={200} className="rounded-md object-cover" />
+        <div className="mb-4">
+          {/* Media Container */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Video Section */}
+            {video && (
+              <div className="relative w-full aspect-video rounded-lg overflow-hidden shadow-lg">
+                <video 
+                  src={video} 
+                  controls
+                  className="w-full h-full object-cover hover:opacity-95 transition-opacity"
+                />
+              </div>
+            )}
+            
+            {/* Image Section - Only show if there's no video or if both should be displayed */}
+            {image && (
+              <div className="relative w-full aspect-video rounded-lg overflow-hidden shadow-lg">
+                <Image 
+                  src={image} 
+                  alt={title} 
+                  fill
+                  className="object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            )}
           </div>
-        )}
+        </div>
         
         <p className="text-gray-700 mb-4">{description}</p>
 

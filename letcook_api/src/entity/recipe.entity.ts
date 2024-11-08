@@ -47,6 +47,12 @@ export class Recipe extends BaseEntity {
   @IsString({ each: true })
   images?: string[];
 
+
+  @Column("text")
+  @IsString()
+  @IsOptional()
+  video?: string;
+
   @Column("array")
   @IsArray()
   @IsOptional()

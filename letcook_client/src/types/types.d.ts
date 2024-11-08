@@ -202,6 +202,7 @@ declare module "CustomTypes" {
     userId: string;
     updatedAt: string;
     images: string[];
+    video?: string;
     cook_time: number;
     serving: number;
     tags: Tag[];
