@@ -1,7 +1,6 @@
 import authService from "@/service/auth.service";
 import RefreshTokenService from "@/service/refreshToken.service";
 import UserService from "@/service/user.service";
-
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -71,7 +70,7 @@ export default class AuthController {
         //   sameSite: "strict",
         //   maxAge: Number(env.EXPIRE_REFRESH),
         // });
-        const redirectUrl = `http://localhost:4000/auto-close?accessToken=${user.accessToken}&refreshToken=${user.refreshToken}`;
+        const redirectUrl = `${env.CLIENT_URL}/auto-close?accessToken=${user.accessToken}&refreshToken=${user.refreshToken}`;
         res.redirect(redirectUrl);
       } else {
         res.status(401).send("Unauthorized");
