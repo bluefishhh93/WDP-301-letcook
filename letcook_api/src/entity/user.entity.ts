@@ -1,4 +1,4 @@
-import { UserRole } from '@/@types/user';
+import { UserRole } from '@/@types/user.d';
 import { RefreshToken } from '@/entity/refreshToken.entity';
 import {
   Column,
