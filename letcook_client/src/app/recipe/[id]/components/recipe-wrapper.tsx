@@ -1,4 +1,3 @@
-// RecipeWrapper.tsx
 import { Suspense } from 'react';
 import { Recipe } from "CustomTypes";
 import HeroSection from "./HeroSection";
@@ -13,13 +12,30 @@ interface RecipeWrapperProps {
   recipe: Recipe;
 }
 
-// Separate Analysis component for Suspense boundary
-async function AnalysisSection({ recipe }: { recipe: Recipe }) {
-  const analysis = await RecipeService.getRecipeAnalysis(recipe);
-  return <Sidebar recipe={recipe} analysis={analysis} />;
+interface Analysis {
+  // Add your analysis type definition here
+  // Example:
+  nutritionalInfo?: {
+    calories: number;
+    protein: number;
+    // ... other fields
+  };
 }
 
-// Loading components
+interface AnalysisSectionProps {
+  recipe: Recipe;
+}
+
+async function AnalysisSection({ recipe }: AnalysisSectionProps) {
+  try {
+    const analysis = await RecipeService.getRecipeAnalysis(recipe);
+    return <Sidebar recipe={recipe} analysis={analysis} />;
+  } catch (error) {
+    console.error('Error loading analysis:', error);
+    return <div>Failed to load analysis</div>;
+  }
+}
+
 const AnalysisLoading = () => (
   <div className="animate-pulse">
     <div className="h-64 bg-gray-200 rounded-lg dark:bg-gray-700"></div>
@@ -33,7 +49,7 @@ const CommentsLoading = () => (
   </div>
 );
 
-export async function RecipeWrapper({ recipe }: RecipeWrapperProps) {
+export function RecipeWrapper({ recipe }: RecipeWrapperProps) {
   return (
     <div className="bg-[#f8f6f2] text-foreground container mx-auto px-4 sm:px-20 py-12 dark:bg-[#1f1f1f]">
       <HeroSection recipe={recipe} />
@@ -53,7 +69,7 @@ export async function RecipeWrapper({ recipe }: RecipeWrapperProps) {
 
       <Suspense fallback={<CommentsLoading />}>
         <RecipeComment
-          comments={(recipe as any)}
+          comments={(recipe as any).commentWithUser}
           recipeId={recipe._id}
         />
       </Suspense>
