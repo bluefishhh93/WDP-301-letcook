@@ -3,7 +3,8 @@ import { Recipe } from "CustomTypes";
 import * as RecipeService from "@/services/recipe.service";
 import { RecipeWrapper } from './components/recipe-wrapper';
 import { Metadata } from 'next';
-import { cache } from 'react';
+import { cache, Suspense } from 'react';
+import Loading from '@/components/Loading';
 
 interface RecipePageProps {
   params: { id: string };
@@ -73,7 +74,9 @@ export default async function RecipePage({ params }: RecipePageProps) {
 
   return (
     <div className="min-h-screen">
-      <RecipeWrapper recipe={recipe} />
+      <Suspense fallback={<Loading />}>
+        <RecipeWrapper recipe={recipe} />
+      </Suspense>
     </div>
   );
 }
