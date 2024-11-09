@@ -20,7 +20,6 @@ import axios from '@/lib/axios';
 import { User, UserInfo } from 'CustomTypes';
 import { ImageUploader } from '@/utils/image-upload';
 import { io } from 'socket.io-client';
-import env from '@/utils/env';
 
 const Editor = dynamic(() => import('@/components/Editor'), { ssr: false });
 
@@ -35,7 +34,7 @@ interface FormPostProps {
   user: User & UserInfo;
 }
 
-const socket = io(env.NEXT_PUBLIC_SOCKET_URL); // Thay 'your-server-url' bằng URL của server
+const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL); // Thay 'your-server-url' bằng URL của server
 
 export default function FormPost({ user }: FormPostProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
