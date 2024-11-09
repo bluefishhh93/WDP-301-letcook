@@ -49,17 +49,6 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
   };
 }
 
-// Pre-render common recipe pages
-export async function generateStaticParams() {
-  const popularRecipeIds = [
-    '101033468453537182850',
-    // Add more popular recipe IDs
-  ];
-
-  return popularRecipeIds.map((id) => ({
-    id: id.toString(),
-  }));
-}
 
 export default async function RecipePage({ params }: RecipePageProps) {
   if (!params.id) {

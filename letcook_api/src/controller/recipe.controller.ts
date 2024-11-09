@@ -234,6 +234,7 @@ export default class RecipeController {
 
   getRecipeById = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      console.log('getRecipeById');
       const recipeId = req.params.id;
       const recipe = await this.recipeService.getRecipeById(recipeId);
       res.status(200).json(recipe);
