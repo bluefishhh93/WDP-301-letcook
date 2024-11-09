@@ -30,7 +30,7 @@ type FormValues = z.infer<typeof userSchema>;
 
 
 export default function EditProfileForm({ token }: { token: string }) {
-    const { profile, isLoading, error } = useProfile(token);
+    const { profile, isLoading, error } = useProfile();
     const { setIsOpen: setIsOverlayOpen } = useContext(ToggleContext);
     const { toast } = useToast();
 
