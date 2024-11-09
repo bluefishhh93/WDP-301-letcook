@@ -22,8 +22,7 @@ import { signIn, useSession } from "next-auth/react";
 import { Upload } from "lucide-react";
 import { revalidatePath } from "next/cache";
 import useProfile from "@/hooks/useProfile";
-import { User } from "../../../../../letcook_api/src/entity/user.entity";
-
+import { UserInfo } from "CustomTypes";
 type Section = 'posts' | 'my-recipes' | 'saved-recipes' | 'following';
 
 
@@ -49,7 +48,7 @@ const UserProfile = () => {
     const [posts, setPosts] = useState<PostType[]>([]);
     const [myRecipes, setMyRecipes] = useState<Recipe[]>([]);
     const [savedRecipes, setSavedRecipes] = useState<Recipe[]>([]);
-    const [followingUsers, setFollowingUsers] = useState<User[]>([]); // Thêm trạng thái cho following users
+    const [followingUsers, setFollowingUsers] = useState<UserInfo[]>([]); // Thêm trạng thái cho following users
     const [activeSection, setActiveSection] = useState<Section>('posts');
     const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
     const { data: session, update, status } = useSession();
