@@ -1,88 +1,73 @@
-
-// page.tsx
-"use client";
-import { Suspense } from 'react';
+// app/recipe/[id]/page.tsx
 import { notFound } from 'next/navigation';
 import { Recipe } from "CustomTypes";
-import HeroSection from "./components/HeroSection";
-import QuickFacts from "./components/QuickFacts";
-import Instructions from "./components/Instructions";
-import Sidebar from "./components/Sidebar";
 import * as RecipeService from "@/services/recipe.service";
-import RecipeComment from "@/app/recipe/[id]/components/Comment";
-import Cart from "@/components/cart/Cart";
-import ErrorAccessDenied from "@/components/error/ErrorAccessDenied";
+import { RecipeWrapper } from './components/recipe-wrapper';
 
-type RecipePageProps = {
+interface RecipePageProps {
   params: { id: string };
-};
-// Add metadata generation for better SEO
+}
+
 export async function generateMetadata({ params }: RecipePageProps) {
-  const recipe = await RecipeService.getRecipeById(params.id);
-  
-  if (!recipe) {
+  try {
+    const recipe = await RecipeService.getRecipeById(params.id);
+    
+    if (!recipe) {
+      return {
+        title: 'Recipe Not Found',
+        description: 'The requested recipe could not be found.'
+      };
+    }
+
     return {
-      title: 'Recipe Not Found',
+      title: recipe.title,
+      description: recipe.description,
+      openGraph: {
+        title: recipe.title,
+        description: recipe.description,
+        images: [{ url: recipe.image, width: 1200, height: 630 }],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: recipe.title,
+        description: recipe.description,
+        images: [recipe.image],
+      },
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return {
+      title: 'Recipe',
+      description: 'Discover amazing recipes',
     };
   }
-
-  return {
-    title: recipe.title,
-    description: recipe.description,
-  };
 }
 
-// Add static page generation for common recipes
 export async function generateStaticParams() {
-  // Get your most popular recipe IDs
-  const popularRecipeIds = ['id1', 'id2', 'id3'];
-  
-  return popularRecipeIds.map((id) => ({
-    id,
-  }));
+  try {
+    const popularRecipeIds = () => {
+      return ['101033468453537182850', '101033468453537182850', '101033468453537182850'];
+    };
+
+
+    return popularRecipeIds().map((id: string) => ({
+      id,
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
 }
 
-const RecipePage: React.FC<RecipePageProps> = async ({ params }) => {
+export default async function RecipePage({ params }: RecipePageProps) {
   const recipe = await RecipeService.getRecipeById(params.id);
 
   if (!recipe) {
     notFound();
   }
 
-  // Wrap the analysis fetch in a Suspense boundary for streaming
-  const AnalysisSection = async ({ recipe }: { recipe: Recipe }) => {
-    const analysis = await RecipeService.getRecipeAnalysis(recipe);
-    return <Sidebar recipe={recipe} analysis={analysis} />;
-  };
+  return <RecipeWrapper recipe={recipe} />;
+}
 
-  return (
-    <div className="bg-[#f8f6f2] text-foreground container mx-auto px-4 sm:px-20 py-12 dark:bg-[#1f1f1f]">
-      <HeroSection recipe={recipe} />
-
-      <div className="flex flex-col lg:flex-row gap-8">
-        <div className="lg:w-2/3">
-          <QuickFacts recipe={recipe} />
-          <Instructions steps={recipe.steps} />
-        </div>
-
-        <Suspense fallback={<div>Loading analysis...</div>}>
-          <AnalysisSection recipe={recipe} />
-        </Suspense>
-      </div>
-
-      <Suspense fallback={<div>Loading comments...</div>}>
-        <RecipeComment
-          comments={(recipe as any).commentWithUser}
-          recipeId={recipe._id}
-        />
-      </Suspense>
-      
-      <Cart />
-    </div>
-  );
-};
-
-// Add route segment config
+export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Revalidate every hour
-
-export default RecipePage;
