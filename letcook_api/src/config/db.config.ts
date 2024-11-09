@@ -31,11 +31,10 @@ import { Favorite } from "@/entity/favourite.entity";
 // import env from '@/util/validateEnv';
 const MongoDataSource = new DataSource({
   type: "mongodb",
-  url: `mongodb+srv://${env.MONGO_USER}:${env.MONGO_PASS}@${env.MONGO_HOST}/${env.MONGO_DB}?retryWrites=true&w=majority`,
+  url: env.MONGO_URL,
   // url: `${env.LOCAL_MONGO}`,
   synchronize: false,
   logging: false,
-  // entities: [__dirname + '/entity/*.ts'],
   entities: [
     Notification,
     RecipeTag,
