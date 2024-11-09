@@ -80,11 +80,21 @@ const HeroSection: React.FC<HeroSectionProps> = ({ recipe }) => {
     <div className="mb-12">
       <div className="flex flex-col md:flex-row gap-6">
         <div className="md:w-1/3">
-          <img
-            src={recipe.images[0]}
-            alt={recipe.title}
-            className="w-full h-64 object-cover rounded-lg shadow-md"
-          />
+        {recipe.video ? (
+            <video
+              src={recipe.video}
+              controls
+              className="w-full h-64 object-cover rounded-lg shadow-md"
+            >
+              Your browser does not support the video tag.
+            </video>
+          ) : (
+            <img
+              src={recipe.images[0]}
+              alt={recipe.title}
+              className="w-full h-64 object-cover rounded-lg shadow-md"
+            />
+          )}
         </div>
         <div className="md:w-2/3">
           <h2 className="text-4xl font-serif mb-4">{recipe.title}</h2>

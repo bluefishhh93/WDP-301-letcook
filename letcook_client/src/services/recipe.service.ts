@@ -51,10 +51,13 @@ export const createRecipe = async (
   }
 };
 
-export const updateIngredients = async (recipeId: string, ingredientsData: Ingredient[]) => {
+export const updateIngredients = async (recipeId: string, ingredientsData: Ingredient[], token: string) => {
   try {
-    const res = await http.put(`${API_URL}/${recipeId}/ingredients`, {
-      ingredients: ingredientsData
+    const res = await callApi({
+      url: `${API_URL}/${recipeId}/ingredients`,
+      method: 'PUT',
+      body: { ingredients: ingredientsData },
+      token,
     });
     if (res.status !== 200) {
       throw new Error(`Failed to update ingredients. Status code: ${res.status}`);
@@ -66,19 +69,24 @@ export const updateIngredients = async (recipeId: string, ingredientsData: Ingre
   }
 };
 
-export const getRecipeById =unstable_cache( async (recipeId: string) => {
-  try {
-    const { data } = await http.get(`${API_URL}/${recipeId}`);
-    return data ?? null;
-  } catch (error) {
-    console.error("Error getting recipe by ID:", error);
-    throw error;
-  }
-}, ['recipe-by-id'],
-{
-  revalidate: 3600, // Cache for 1 hour
-  tags: ['recipe']
-});
+export const getRecipeById = async (recipeId: string) => {
+  return unstable_cache(
+    async () => {
+      try {
+        const { data } = await http.get(`${API_URL}/${recipeId}`);
+        return data ?? null;
+      } catch (error) {
+        console.error("Error getting recipe by ID:", error);
+        throw error;
+      }
+    },
+    [`recipe-${recipeId}`],
+    {
+      revalidate: 60 * 60 * 30, // Cache for 30 minutes
+      tags: [`recipe-${recipeId}`],
+    }
+  )();
+};
 
 export const getPublicRecipes = async (skip: number, take: number) => {
   try {
@@ -224,8 +232,9 @@ REQUIREMENTS:
 - Ưu tiên từ khóa phổ biến trong nấu ăn
 - Đảm bảo dấu tiếng Việt chính xác
 - Kết hợp cả từ đơn và cụm từ có nghĩa
+- Trả về 10 từ khóa liên quan nhất
 
-Please respond in valid JSON format:
+Please respond in valid JSON format:  
 {
   "isValid": boolean,
   "keywordList": string[]

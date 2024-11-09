@@ -48,7 +48,10 @@ const PreviewDialog: FC<PreviewDialogProps> = ({ recipe, onAction }) => {
                                 width={200}
                                 height={150}
                                 className="rounded-md object-cover aspect-[4/3] shadow-md mb-2"
-                            />
+                            />  
+                            {recipe.video && (
+                                <video src={recipe.video} controls className="rounded-md object-cover aspect-[4/3] shadow-md mb-2" />
+                            )}
                             <RecipeDetails
                                 cookTime={recipe.cook_time}
                                 serving={recipe.serving}

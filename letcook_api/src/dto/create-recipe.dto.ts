@@ -16,6 +16,7 @@ interface CreateRecipeDTO {
   serving: number;
   difficulty: string;
   images?: string[];
+  video?: string;
   ingredients: CreateIngredientDTO[];
   steps: CreateStepDTO[];
   isPublic: boolean;

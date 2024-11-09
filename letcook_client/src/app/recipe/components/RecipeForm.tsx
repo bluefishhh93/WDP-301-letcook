@@ -20,6 +20,8 @@ const EnhancedRecipeForm: React.FC = () => {
   const [cookTime, setCookTime] = useState<number>(0);
   const [servings, setServings] = useState<number>(0);
   const [difficulty, setDifficulty] = useState<string>("");
+  const [video, setVideo] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState<IngredientForm[]>([
@@ -74,8 +76,10 @@ const EnhancedRecipeForm: React.FC = () => {
     setCookTime(0);
     setServings(0);
     setDifficulty("");
+    setVideo(null);
     setImage(null);
     setImagePreview(null);
+    setVideoPreview(null);
     setIngredients([{ name: "", quantity: "" }]);
     setSteps([{ description: "", images: [] }]);
     setErrors({});
@@ -98,7 +102,7 @@ const EnhancedRecipeForm: React.FC = () => {
     formData.append("servings", servings.toString());
     formData.append("difficulty", difficulty);
     if (image) formData.append("image", image);
-
+    if (video) formData.append("video", video);
     ingredients.forEach((ing, index) => {
       formData.append(`ingredients[${index}][name]`, ing.name);
       formData.append(`ingredients[${index}][quantity]`, ing.quantity);
@@ -147,10 +151,35 @@ const EnhancedRecipeForm: React.FC = () => {
     };
   }, [image]);
 
+  useEffect(() => {
+    if (video) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setVideoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(video);
+    }else {
+      setVideoPreview(null);
+    }
+
+    return () => {
+      if (video) {
+        URL.revokeObjectURL(videoPreview as string);
+      }
+    };
+  }, [video]);
+
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setImage(file);
+    }
+  };
+
+  const handleVideoUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setVideo(file);
     }
   };
 
@@ -255,7 +284,9 @@ const EnhancedRecipeForm: React.FC = () => {
           {currentStep === 1 && (
             <GeneralInfo
               onImageUpload={handleImageUpload}
+              onVideoUpload={handleVideoUpload}
               image={imagePreview}
+              video={videoPreview}
               title={title}
               setTitle={setTitle}
               description={description}
@@ -329,6 +360,7 @@ const EnhancedRecipeForm: React.FC = () => {
               title={title}
               description={description}
               image={imagePreview}
+              video={videoPreview}
               ingredients={ingredients}
               steps={steps}
               cookTime={cookTime}

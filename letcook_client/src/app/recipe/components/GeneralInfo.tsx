@@ -13,6 +13,8 @@ import {
 import Image from "next/image";
 
 interface GeneralInfoProps {
+  onVideoUpload: (e: ChangeEvent<HTMLInputElement>) => void;
+  video: string | null;
   onImageUpload: (e: ChangeEvent<HTMLInputElement>) => void;
   image: string | null;
   title: string;
@@ -29,6 +31,8 @@ interface GeneralInfoProps {
 }
 
 const GeneralInfo: React.FC<GeneralInfoProps> = ({
+  onVideoUpload,
+  video,
   onImageUpload,
   image,
   title,
@@ -78,6 +82,26 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
           )}
           {errors.image && (
             <p className="mt-1 text-xs text-red-500">{errors.image}</p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="video">Recipe Video</Label>
+          <Input
+            id="video"
+            type="file"
+            accept="video/*"
+            onChange={onVideoUpload}
+            className="border-amber-300 focus:border-amber-500"
+          />
+          {video && (
+            <video
+              src={video}
+              controls
+              className="mt-2 max-w-full h-auto rounded"
+              style={{ maxHeight: '200px' }}
+            >
+              Your browser does not support the video tag.
+            </video>
           )}
         </div>
       </div>

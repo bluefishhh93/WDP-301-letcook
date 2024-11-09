@@ -18,6 +18,8 @@ export default class RecipeController {
       const steps = parseSteps(body);
 
       const mainImageFiles = files.filter((f) => f.fieldname === "image");
+      const videoFile = files.find((f) => f.fieldname === "video");
+
       const mainImageUrls = await Promise.all(
         mainImageFiles.map((file) =>
           uploadToCloudinary(file, env.CLOUD_IMG_FOLDER_RECIPE),
@@ -27,6 +29,8 @@ export default class RecipeController {
       // steps.forEach((step, index) => {
       //   step.images.push(mainImageUrls[index]);
       // });
+
+      const videoUrl = videoFile ? await uploadToCloudinary(videoFile, env.CLOUD_VIDEO_FOLDER_RECIPE) : undefined;
 
       const stepImageUploadPromises = files
         .filter((file) => file.fieldname.startsWith("steps["))
@@ -50,6 +54,7 @@ export default class RecipeController {
       const recipe: CreateRecipeDTO = {
         userId: id,
         title: body.title,
+        video: videoUrl,
         description: body.description,
         cook_time: parseInt(body.cookTime),
         serving: parseInt(body.servings),
