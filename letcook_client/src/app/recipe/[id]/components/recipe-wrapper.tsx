@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { cache, Suspense } from 'react';
 import { Recipe } from "CustomTypes";
 import HeroSection from "./HeroSection";
 import QuickFacts from "./QuickFacts";
@@ -7,47 +7,28 @@ import Sidebar from "./Sidebar";
 import * as RecipeService from "@/services/recipe.service";
 import RecipeComment from "./Comment";
 import Cart from "@/components/cart/Cart";
-
 interface RecipeWrapperProps {
   recipe: Recipe;
 }
 
-interface Analysis {
-  // Add your analysis type definition here
-  // Example:
-  nutritionalInfo?: {
-    calories: number;
-    protein: number;
-    // ... other fields
-  };
-}
-
-interface AnalysisSectionProps {
-  recipe: Recipe;
-}
-
-async function AnalysisSection({ recipe }: AnalysisSectionProps) {
+const getAnalysis = cache(async (recipe: Recipe) => {
   try {
-    const analysis = await RecipeService.getRecipeAnalysis(recipe);
-    return <Sidebar recipe={recipe} analysis={analysis} />;
+    return await RecipeService.getRecipeAnalysis(recipe);
   } catch (error) {
     console.error('Error loading analysis:', error);
+    return null;
+  }
+});
+
+async function AnalysisSection({ recipe }: { recipe: Recipe }) {
+  const analysis = await getAnalysis(recipe);
+  
+  if (!analysis) {
     return <div>Failed to load analysis</div>;
   }
+
+  return <Sidebar recipe={recipe} analysis={analysis} />;
 }
-
-const AnalysisLoading = () => (
-  <div className="animate-pulse">
-    <div className="h-64 bg-gray-200 rounded-lg dark:bg-gray-700"></div>
-  </div>
-);
-
-const CommentsLoading = () => (
-  <div className="animate-pulse space-y-4">
-    <div className="h-20 bg-gray-200 rounded dark:bg-gray-700"></div>
-    <div className="h-20 bg-gray-200 rounded dark:bg-gray-700"></div>
-  </div>
-);
 
 export function RecipeWrapper({ recipe }: RecipeWrapperProps) {
   return (
@@ -77,4 +58,12 @@ export function RecipeWrapper({ recipe }: RecipeWrapperProps) {
       <Cart />
     </div>
   );
+}
+
+function AnalysisLoading() {
+  return <div>Loading analysis...</div>;
+}
+
+function CommentsLoading() {
+  return <div>Loading comments...</div>;
 }
