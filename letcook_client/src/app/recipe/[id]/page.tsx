@@ -1,5 +1,6 @@
 
 // page.tsx
+"use client";
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Recipe } from "CustomTypes";
