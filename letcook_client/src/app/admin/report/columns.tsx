@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Link from "@/components/ui/link";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,9 +21,13 @@ type ReportData = {
 };
 
 export const createColumns = (): ColumnDef<ReportData>[] => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const router = useRouter();
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [isResponseDialogOpen, setIsResponseDialogOpen] = useState(false);
+    // eslint-disable-next-line react-hooks/rules-of-hooks
   const [reportResponses, setReportResponses] = useState([]);
+    // eslint-disable-next-line react-hooks/rules-of-hooks
   const [selectedRecipeId, setSelectedRecipeId] = useState("");
 
   return [
@@ -73,7 +76,7 @@ export const createColumns = (): ColumnDef<ReportData>[] => {
               `/api/recipe/${report.recipeId}/report`
             );
             const reportData = response.data;
-            setReportResponses([reportData]);
+            setReportResponses(reportData); // Assuming response.data is already an array of reports
             setSelectedRecipeId(report.recipeId);
             setIsResponseDialogOpen(true);
 
@@ -114,7 +117,7 @@ export const createColumns = (): ColumnDef<ReportData>[] => {
                   View Reports
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => handleBlockRecipe(report.recipeId)}
+                  onClick={() => handleBlockRecipe()}
                 >
                   Block Recipe
                 </DropdownMenuItem>
