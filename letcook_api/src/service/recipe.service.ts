@@ -363,7 +363,7 @@ export default class RecipeService {
         await notificationService.createNotification({
           userId: recipe.userId!,
           title: "Recipe Accepted",
-          content: "Your recipe was public",
+          content: `Your recipe ${recipe.title} was public`,
           createdAt: new Date(),
         });
 

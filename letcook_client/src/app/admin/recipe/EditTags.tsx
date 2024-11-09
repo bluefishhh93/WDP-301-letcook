@@ -17,7 +17,9 @@ import {
   MultiSelectorList,
   MultiSelectorTrigger,
 } from '@/components/ui/multiple-select';
+import useAuth from '@/hooks/useAuth';
 import axios from '@/lib/axios';
+import { callApi } from '@/utils/callApi';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
@@ -33,6 +35,7 @@ export default function EditTags({
       tags: currentTags ? currentTags.map((tag) => tag.name) : [],
     },
   });
+  const {user} = useAuth();
   const [listTags, setListTags] = useState<string[]>([]);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [value, setValue] = useState<string>('');
@@ -72,7 +75,12 @@ export default function EditTags({
 
   const onSubmit = async (data: any) => {
     try {
-      const res = await axios.post(`/api/recipe/tag/${recipeId}`, data);
+      const res = await callApi({
+        url: `/api/recipe/tag/${recipeId}`,
+        method: 'POST',
+        body: data,
+        token: user?.accessToken,
+      });
       if (res.status === 200) {
         toast.success('Update tags success');
       }

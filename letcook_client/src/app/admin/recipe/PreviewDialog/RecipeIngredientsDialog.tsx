@@ -14,6 +14,7 @@ import { Ingredient, ProductCategoryType, ProductType, Recipe } from 'CustomType
 import { useToast } from '@/hooks/useToast';
 import Image from 'next/image';
 import { updateIngredients } from '@/services/recipe.service';
+import useAuth from '@/hooks/useAuth';
 
 
 const useProductFilter = (products: ProductType[], categories: ProductCategoryType[]) => {
@@ -171,6 +172,7 @@ export default function RecipeIngredientsDialog({ recipe, onAssignSuccess }: Rec
   const [products, setProducts] = useState<ProductType[]>([]);
   const [categories, setCategories] = useState<ProductCategoryType[]>([]);
   const toast = useToast();
+  const { user } = useAuth();
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -212,7 +214,7 @@ export default function RecipeIngredientsDialog({ recipe, onAssignSuccess }: Rec
     setIsLoading(true);
     try {
       // Send updated ingredients to the backend
-      const data = await updateIngredients(recipe._id, ingredients);
+      const data = await updateIngredients(recipe._id, ingredients, user?.accessToken!);
 
       if (data) {
         toast.showToast("Recipe ingredients updated", "success");
