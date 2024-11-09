@@ -3,9 +3,10 @@
   "module": "src/index.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun --hot ./src/index.ts",
-    
-    "typeorm": "typeorm-ts-node-commonjs"
+  "dev": "bun --hot ./src/index.ts",
+  "build": "bun build ./src/index.ts",
+  "start": "bun ./src/index.ts",
+  "typeorm": "typeorm-ts-node-commonjs"
   },
   "devDependencies": {
     "@types/bun": "latest",
