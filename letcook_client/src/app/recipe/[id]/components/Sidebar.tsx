@@ -14,11 +14,10 @@ import ReportDialog from "./ReportDialog";
 import NutritionAnalysis from "./nutrition-analysis";
 import NutritionTable from "./NutritionTable";
 import TasteAnalysis from "./taste-analysis";
-import { RecipeAnalysis } from "../page";
 
 interface SidebarProps {
   recipe: Recipe;
-  analysis: RecipeAnalysis;
+  analysis: any;
 }
 
 interface Nutrient {
