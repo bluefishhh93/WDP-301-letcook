@@ -1,6 +1,7 @@
 // SearchWrapper.tsx
 import { enhanceSearch } from "@/services/recipe.service";
 import SearchResults from "./SearchResults";
+import { cache } from 'react';
 
 interface SearchParams {
   q: string;
@@ -12,6 +13,22 @@ interface EnhanceSearchResult {
   isValid: boolean;
 }
 
+// Cache the search results
+const getSearchResults = cache(async (query: string, enhanced: boolean) => {
+  try {
+    if (enhanced) {
+      const enhancedResult = await enhanceSearch(query);
+      if (isValidEnhanceSearchResult(enhancedResult)) {
+        return enhancedResult.keyList;
+      }
+    }
+    return processBasicSearch(query);
+  } catch (error) {
+    console.error('Search processing error:', error);
+    return processBasicSearch(query);
+  }
+});
+
 export async function SearchWrapper({ searchParams }: { searchParams: SearchParams }) {
   try {
     // Validate search query exists
@@ -20,25 +37,7 @@ export async function SearchWrapper({ searchParams }: { searchParams: SearchPara
     }
 
     const enhancedBoolean = searchParams.enhanced === 'true';
-    let searchWords: string[] = [];
-
-    if (enhancedBoolean) {
-      try {
-        const enhancedResult = await enhanceSearch(searchParams.q);
-        
-        if (isValidEnhanceSearchResult(enhancedResult)) {
-          searchWords = enhancedResult.keyList;
-        } else {
-          console.error('Invalid enhanced search result structure');
-          searchWords = processBasicSearch(searchParams.q);
-        }
-      } catch (error) {
-        console.error('Enhanced search failed:', error);
-        searchWords = processBasicSearch(searchParams.q);
-      }
-    } else {
-      searchWords = processBasicSearch(searchParams.q);
-    }
+    const searchWords = await getSearchResults(searchParams.q, enhancedBoolean);
 
     return (
       <SearchResults 
@@ -59,7 +58,6 @@ export async function SearchWrapper({ searchParams }: { searchParams: SearchPara
   }
 }
 
-// Helper function to process basic search
 function processBasicSearch(query: string): string[] {
   return query
     .trim()
@@ -68,7 +66,6 @@ function processBasicSearch(query: string): string[] {
     .map(escapeRegExp);
 }
 
-// Type guard for enhanced search result
 function isValidEnhanceSearchResult(result: any): result is EnhanceSearchResult {
   return (
     result &&
@@ -77,7 +74,6 @@ function isValidEnhanceSearchResult(result: any): result is EnhanceSearchResult 
   );
 }
 
-// Escape special characters in search terms
 function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
