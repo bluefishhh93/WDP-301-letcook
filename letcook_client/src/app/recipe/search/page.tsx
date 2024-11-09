@@ -1,33 +1,29 @@
-// app/recipe/search/page.tsx
-import { SearchWrapper } from './search-wrapper';
+import { enhanceSearch } from "@/services/recipe.service";
+import SearchResults from "./SearchResults";
 
-interface SearchPageProps {
-  searchParams: {
-    q: string;
-    enhanced?: string;
+export default async function SearchRecipePage({
+  searchParams
+}: {
+  searchParams: { q: string; enhanced?: string }
+}) {
+
+  const enhancedBoolean = searchParams.enhanced === 'true';
+  let searchWords: string[];
+
+  if (enhancedBoolean) {
+    const { keyList, isValid } = await enhanceSearch(searchParams.q);
+    searchWords = keyList;
+  } else {  
+    searchWords = searchParams.q.trim()
+      .split(/\s+/)
+      .filter(word => word.length > 0)
+      .map(word => escapeRegExp(word));
   }
+  console.log(searchWords ,'hehe');
+
+  return <SearchResults initialQuery={searchParams.q} initialSearchWords={searchWords} />;
 }
 
-// Mark the page as statically generated
-export const dynamic = 'force-static';
-export const revalidate = 3600; // Revalidate every hour
-
-// Generate static params for common searches
-export async function generateStaticParams() {
-  // Common search terms that you want to pre-render
-  const commonSearches = [
-    { q: 'chicken', enhanced: 'true' },
-    { q: 'vegetarian', enhanced: 'true' },
-    { q: 'dessert', enhanced: 'true' },
-    { q: 'quick meals', enhanced: 'true' },
-    { q: 'breakfast', enhanced: 'true' },
-  ];
-
-  return commonSearches.map((search) => ({
-    searchParams: search
-  }));
-}
-
-export default function SearchRecipePage({ searchParams }: SearchPageProps) {
-  return <SearchWrapper searchParams={searchParams} />;
+const escapeRegExp = (string: string): string => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
