@@ -23,7 +23,7 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { data: session } = useSession();
-    const { profile: initialProfile, isLoading: initialLoading, error: initialError } = useProfile(session?.user?.id!);
+    const { profile: initialProfile, isLoading: initialLoading, error: initialError } = useProfile();
     const [profile, setProfile] = useState<Profile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
