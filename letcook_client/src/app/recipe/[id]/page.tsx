@@ -73,7 +73,11 @@ export default async function RecipePage({ params }: RecipePageProps) {
       notFound();
     }
 
-    return <RecipeWrapper recipe={recipe} />;
+    return(
+      <div>
+        <RecipeWrapper recipe={recipe} />
+      </div>
+    );
   } catch (error) {
     console.error('Error loading recipe:', error);
     notFound();
