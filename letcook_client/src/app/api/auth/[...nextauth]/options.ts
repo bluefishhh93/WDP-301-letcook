@@ -1,6 +1,6 @@
 import { AuthOptions } from "next-auth";
 import Google from "next-auth/providers/google";
-import axios from "axios";
+import axios from "@/lib/axios";
 
 interface User {
     id: string;
