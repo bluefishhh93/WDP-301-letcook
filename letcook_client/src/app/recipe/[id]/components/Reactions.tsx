@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { CookingPotIcon, Heart, ThumbsUp } from "lucide-react";
 import useAuth from "@/hooks/useAuth";
 import axios from "@/lib/axios";
+import { callApi } from "@/utils/callApi";
 
 interface ReactionsState {
   isLike: boolean;
@@ -55,9 +56,14 @@ function Reactions({ recipeId }: { recipeId: string }) {
     });
 
     try {
-      await axios.post(`/api/recipe/${recipeId}/reactions`, {
-        userId: user.id,
-        [stateKey]: !reactions[stateKey],
+      await callApi({
+        method: "POST",
+        token: user?.accessToken,
+        url: `/api/recipe/${recipeId}/reactions`,
+        body: {
+          userId: user.id,
+          [stateKey]: !reactions[stateKey],
+        },
       });
     } catch (error) {
       console.error(`Error updating ${type} reaction:`, error);
