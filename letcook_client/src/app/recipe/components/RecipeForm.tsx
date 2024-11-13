@@ -15,20 +15,31 @@ import { uploadToCloudinary } from "@/lib/cloudinary";
 
 
 const uploadFile = async (file: File) => {
+  // Check file size before uploading
+  if (file.size > 100 * 1024 * 1024) { // 100MB
+    throw new Error('File size exceeds 100MB limit');
+  }
+
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch('/api/cloudinary', {
-    method: 'POST',
-    body: formData,
-  });
+  try {
+    const response = await fetch('/api/cloudinary', {
+      method: 'POST',
+      body: formData,
+    });
 
-  if (!response.ok) {
-    throw new Error('Failed to upload file');
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upload file');
+    }
+
+    const data = await response.json();
+    return data.url;
+  } catch (error) {
+    console.error('Upload error:', error);
+    throw error;
   }
-
-  const data = await response.json();
-  return data.url;
 };
 
 
