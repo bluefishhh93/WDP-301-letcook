@@ -38,7 +38,15 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
     openGraph: {
       title: recipe.title,
       description: recipe.description,
-      images: [{ url: recipe.image, width: 1200, height: 630, alt: recipe.title }],
+      images: [{
+        url: recipe.image,
+        width: 1200,
+        height: 630,
+        alt: recipe.title,
+        type: 'image/jpeg', // or 'image/png' depending on your image type
+      }],
+      type: 'website',
+      siteName: 'Letcook',
     },
     twitter: {
       card: 'summary_large_image',
