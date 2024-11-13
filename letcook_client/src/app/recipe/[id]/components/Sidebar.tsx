@@ -75,10 +75,10 @@ const Sidebar: React.FC<SidebarProps> = ({ recipe, analysis }) => {
               }
             />
           )}
-          <Button variant="outline" className="w-full">
+          {/* <Button variant="outline" className="w-full">
             <ShareIcon className="w-5 h-5 mr-2" />
             Share Recipe
-          </Button>
+          </Button> */}
         </div>
         <div className="bg-white rounded-lg p-6 dark:bg-slate-800">
           <h3 className="text-2xl font-bold mb-4">Ingredients</h3>
