@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
     };
   }
 
-  const optimizedImageUrl = getOptimizedImageUrl(recipe.image);
+  const optimizedImageUrl = getOptimizedImageUrl(recipe.images[0]);
 
   return {
     title: recipe.title,
