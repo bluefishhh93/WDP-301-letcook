@@ -43,7 +43,7 @@ export const createRecipe = async (
       method: 'POST',
       body: recipeData,
       token,
-      multipart: true,
+      multipart: false,
     });
     return { status: res.status, data: res.data };
   } catch (error) {

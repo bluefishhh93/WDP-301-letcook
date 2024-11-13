@@ -10,61 +10,33 @@ export default class RecipeController {
   createNewRecipe = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.user as { id: string };
-      const body = req.body as Record<string, string>;
-      const files = req.files as Express.Multer.File[];
-      console.log(files, ' createNewRecipe');
-      console.log(body, ' createNewRecipe');
-      const ingredients = parseIngredients(body);
-      const steps = parseSteps(body);
-
-      const mainImageFiles = files.filter((f) => f.fieldname === "image");
-      const videoFile = files.find((f) => f.fieldname === "video");
-
-      const mainImageUrls = await Promise.all(
-        mainImageFiles.map((file) =>
-          uploadToCloudinary(file, env.CLOUD_IMG_FOLDER_RECIPE),
-        ),
-      );
-      //add main image to steps
-      // steps.forEach((step, index) => {
-      //   step.images.push(mainImageUrls[index]);
-      // });
-
-      const videoUrl = videoFile ? await uploadToCloudinary(videoFile, env.CLOUD_VIDEO_FOLDER_RECIPE) : undefined;
-
-      const stepImageUploadPromises = files
-        .filter((file) => file.fieldname.startsWith("steps["))
-        .map(async (file) => {
-          const match = file.fieldname.match(/steps\[(\d+)\]/);
-          if (match) {
-            const [, stepIndex] = match;
-            const i = parseInt(stepIndex);
-            const imageUrl = await uploadToCloudinary(
-              file,
-              env.CLOUD_IMG_FOLDER_RECIPE,
-            );
-            if (steps[i]) {
-              steps[i].images.push(imageUrl);
-            }
-          }
-        });
-
-      await Promise.all(stepImageUploadPromises);
-
+      const {
+        title,
+        description,
+        cookTime,
+        servings,
+        difficulty,
+        image,
+        video,
+        ingredients,
+        steps
+      } = req.body;
+  
       const recipe: CreateRecipeDTO = {
         userId: id,
-        title: body.title,
-        video: videoUrl,
-        description: body.description,
-        cook_time: parseInt(body.cookTime),
-        serving: parseInt(body.servings),
-        difficulty: body.difficulty,
-        images: mainImageUrls,
+        title,
+        description,
+        cook_time: parseInt(cookTime),
+        serving: parseInt(servings),
+        difficulty,
+        images: image ? [image] : [],
+        video,
         ingredients,
         steps,
         isPublic: false,
         createdAt: new Date(),
       };
+  
       const newRecipe = await this.recipeService.createRecipe(recipe);
       res.status(200).json(newRecipe);
     } catch (error) {

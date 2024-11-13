@@ -11,6 +11,26 @@ import * as RecipeService from "@/services/recipe.service";
 import useAuth from "@/hooks/useAuth";
 import { useToast } from "@/hooks/useToast";
 import SuccessModal from "./SuccessModal";
+import { uploadToCloudinary } from "@/lib/cloudinary";
+
+
+const uploadFile = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch('/api/cloudinary', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to upload file');
+  }
+
+  const data = await response.json();
+  return data.url;
+};
+
 
 const EnhancedRecipeForm: React.FC = () => {
   const { user } = useAuth();
@@ -88,42 +108,62 @@ const EnhancedRecipeForm: React.FC = () => {
   const sendDataToBackend = async () => {
     if (!user || !user.id) return;
     if (!validateForm()) {
-      setCurrentStep(1); // Go back to the first step if there are errors
+      setCurrentStep(1);
       return;
     }
-
-
-
-    const formData = new FormData();
-    // formData.append("userId", user.id)
-    formData.append("title", title);
-    formData.append("description", description);
-    formData.append("cookTime", cookTime.toString());
-    formData.append("servings", servings.toString());
-    formData.append("difficulty", difficulty);
-    if (image) formData.append("image", image);
-    if (video) formData.append("video", video);
-    ingredients.forEach((ing, index) => {
-      formData.append(`ingredients[${index}][name]`, ing.name);
-      formData.append(`ingredients[${index}][quantity]`, ing.quantity);
-    });
-
-    steps.forEach((step, index) => {
-      formData.append(`steps[${index}][description]`, step.description);
-      step.images.forEach((img, imgIndex) => {
-        formData.append(`steps[${index}][images]`, img);
-      });
-    });
-
+  
     try {
       setIsSaving(true);
-      const response = await RecipeService.createRecipe(formData, user.accessToken);
+      
+      // Upload main image
+      let mainImageUrl;
+      if (image) {
+        mainImageUrl = await uploadFile(image);
+      }
+  
+      // Upload video
+      let videoUrl;
+      if (video) {
+        videoUrl = await uploadFile(video);
+      }
+  
+      // Upload step images
+      const updatedSteps = await Promise.all(
+        steps.map(async (step) => {
+          const uploadedImages = await Promise.all(
+            step.images.map(img => uploadFile(img))
+          );
+          return {
+            ...step,
+            images: uploadedImages
+          };
+        })
+      );
+  
+      // Rest of your code remains the same...
+      const recipeData = {
+        title,
+        description,
+        cookTime,
+        servings,
+        difficulty,
+        image: mainImageUrl,
+        video: videoUrl,
+        ingredients: ingredients.map(ing => ({
+          name: ing.name,
+          quantity: ing.quantity
+        })),
+        steps: updatedSteps
+      };
 
+      console.log(recipeData);
+  
+      const response = await RecipeService.createRecipe(recipeData, user.accessToken);
+  
       if (response.status === 200) {
         setSubmittedRecipe(response.data as Recipe);
         setIsSuccessModalOpen(true);
       } else {
-        // Handle error (e.g., show an error message)
         console.error("Failed to submit recipe");
       }
     } catch (error) {

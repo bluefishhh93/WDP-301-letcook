@@ -8,7 +8,7 @@ cloudinary.config({
 });
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
-const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4'];
 
 export async function POST(request: NextRequest) {
   try {
