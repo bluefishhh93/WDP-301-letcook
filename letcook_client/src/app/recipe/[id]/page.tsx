@@ -22,6 +22,13 @@ const getRecipe = cache(async (id: string) => {
   }
 });
 
+function getImageMimeType(url: string): string {
+  const lowercaseUrl = url.toLowerCase();
+  if (lowercaseUrl.endsWith('.webp')) return 'image/webp';
+  if (lowercaseUrl.endsWith('.png')) return 'image/png';
+  return 'image/jpeg';
+}
+
 export async function generateMetadata({ params }: RecipePageProps): Promise<Metadata> {
   const recipe = await getRecipe(params.id);
   
@@ -43,7 +50,7 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
         width: 1200,
         height: 630,
         alt: recipe.title,
-        type: 'image/jpeg', // or 'image/png' depending on your image type
+        type: getImageMimeType(recipe.image),
       }],
       type: 'website',
       siteName: 'Letcook',
