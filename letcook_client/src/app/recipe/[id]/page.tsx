@@ -22,11 +22,38 @@ const getRecipe = cache(async (id: string) => {
   }
 });
 
-function getImageMimeType(url: string): string {
-  const lowercaseUrl = url.toLowerCase();
-  if (lowercaseUrl.endsWith('.webp')) return 'image/webp';
-  if (lowercaseUrl.endsWith('.png')) return 'image/png';
-  return 'image/jpeg';
+// Helper to optimize Cloudinary image URL for social sharing
+function getOptimizedImageUrl(cloudinaryUrl: string): string {
+  if (!cloudinaryUrl) return '';
+  
+  // Check if it's a Cloudinary URL
+  if (!cloudinaryUrl.includes('cloudinary.com')) {
+    return cloudinaryUrl;
+  }
+
+  try {
+    // Parse the URL
+    const url = new URL(cloudinaryUrl);
+    const urlParts = url.pathname.split('/');
+
+    // Find the upload part index
+    const uploadIndex = urlParts.indexOf('upload');
+    if (uploadIndex === -1) return cloudinaryUrl;
+
+    // Insert transformation parameters after 'upload'
+    // f_auto: automatic format selection
+    // q_auto: automatic quality
+    // w_1200,h_630,c_fill: resize to optimal social sharing dimensions
+    // g_auto: automatic gravity/cropping
+    urlParts.splice(uploadIndex + 1, 0, 'f_auto,q_auto,w_1200,h_630,c_fill,g_auto');
+
+    // Reconstruct the URL
+    url.pathname = urlParts.join('/');
+    return url.toString();
+  } catch (error) {
+    console.error('Error optimizing Cloudinary URL:', error);
+    return cloudinaryUrl;
+  }
 }
 
 export async function generateMetadata({ params }: RecipePageProps): Promise<Metadata> {
@@ -39,31 +66,37 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
     };
   }
 
+  const optimizedImageUrl = getOptimizedImageUrl(recipe.image);
+
   return {
     title: recipe.title,
     description: recipe.description,
+    metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://yourdomain.com'),
     openGraph: {
+      type: 'article',
       title: recipe.title,
       description: recipe.description,
       images: [{
-        url: recipe.image,
+        url: optimizedImageUrl,
         width: 1200,
         height: 630,
         alt: recipe.title,
-        type: getImageMimeType(recipe.image),
       }],
-      type: 'website',
-      siteName: 'Letcook',
+      siteName: 'Your Recipe Site',
+      locale: 'en_US',
+      url: `/recipes/${params.id}`,
     },
     twitter: {
       card: 'summary_large_image',
       title: recipe.title,
       description: recipe.description,
-      images: [recipe.image],
+      images: [optimizedImageUrl],
+    },
+    alternates: {
+      canonical: `/recipes/${params.id}`,
     },
   };
 }
-
 
 export default async function RecipePage({ params }: RecipePageProps) {
   if (!params.id) {
@@ -85,5 +118,4 @@ export default async function RecipePage({ params }: RecipePageProps) {
   );
 }
 
-// Use revalidate instead of dynamic
 export const revalidate = 3600; // Revalidate every hour
